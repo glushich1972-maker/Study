@@ -1,736 +1,1278 @@
-
 <!DOCTYPE html>
-<html lang="ru" data-theme="light">
+<html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Учебный помощник</title>
+<title>Учебный помощник</title>
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
-    <style>
-        [data-theme="dark"] {
-            background-color: #0f172a;
-            color: #f8fafc;
-        }
+<style>
+    html, body {
+        min-height: 100%;
+    }
 
-        [data-theme="dark"] .bg-card {
-            background-color: #1e293b;
-            border-color: #334155;
-        }
+    body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+                     Roboto, Arial, sans-serif;
+    }
 
-        [data-theme="dark"] select,
-        [data-theme="dark"] input,
-        [data-theme="dark"] details {
-            background-color: #334155;
-            color: #ffffff;
-            border-color: #475569;
-        }
+    .material-card {
+        transition: transform .15s ease, box-shadow .15s ease;
+    }
 
-        [data-theme="dark"] .text-gray-600 {
-            color: #cbd5e1;
-        }
+    .material-card:hover {
+        transform: translateY(-1px);
+    }
 
-        [data-theme="dark"] .text-gray-400 {
-            color: #94a3b8;
-        }
+    .hidden {
+        display: none !important;
+    }
 
-        [data-theme="dark"] .bg-gray-50 {
-            background-color: #1e293b;
-        }
+    #viewer img {
+        max-width: 100%;
+        height: auto;
+    }
 
-        [data-theme="dark"] .border-gray-200 {
-            border-color: #475569;
-        }
+    #viewer table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0;
+    }
 
-        .markdown-body {
-            line-height: 1.65;
-            font-size: 15px;
-        }
+    #viewer th,
+    #viewer td {
+        border: 1px solid #cbd5e1;
+        padding: .5rem;
+        text-align: left;
+    }
 
-        .markdown-body h1 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin: 0 0 1rem;
-        }
+    #viewer pre {
+        overflow-x: auto;
+        padding: 1rem;
+        border-radius: .5rem;
+        background: #f1f5f9;
+    }
 
-        .markdown-body h2 {
-            font-size: 1.25rem;
-            font-weight: 700;
-            margin: 1.5rem 0 .75rem;
-        }
+    .dark #viewer pre {
+        background: #1e293b;
+    }
 
-        .markdown-body h3 {
-            font-size: 1.1rem;
-            font-weight: 700;
-            margin: 1.25rem 0 .5rem;
-        }
+    .dark #viewer th,
+    .dark #viewer td {
+        border-color: #475569;
+    }
 
-        .markdown-body p {
-            margin: .7rem 0;
-        }
+    .dark body {
+        background: #0f172a;
+        color: #e2e8f0;
+    }
 
-        .markdown-body ul,
-        .markdown-body ol {
-            padding-left: 1.4rem;
-            margin: .7rem 0;
-        }
+    .dark .panel {
+        background: #1e293b;
+        border-color: #334155;
+    }
 
-        .markdown-body li {
-            margin: .3rem 0;
-        }
+    .dark select,
+    .dark input,
+    .dark textarea {
+        background: #0f172a;
+        color: #e2e8f0;
+        border-color: #475569;
+    }
 
-        .markdown-body blockquote {
-            border-left: 4px solid #6366f1;
-            padding-left: 1rem;
-            margin: 1rem 0;
-            color: #64748b;
-        }
+    .dark .secondary {
+        background: #334155;
+        color: #e2e8f0;
+    }
 
-        .markdown-body table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 1rem 0;
-            font-size: 14px;
-        }
+    .spinner {
+        width: 22px;
+        height: 22px;
+        border: 3px solid #cbd5e1;
+        border-top-color: #2563eb;
+        border-radius: 50%;
+        animation: spin .8s linear infinite;
+        display: inline-block;
+    }
 
-        .markdown-body th,
-        .markdown-body td {
-            border: 1px solid #cbd5e1;
-            padding: .5rem;
-            text-align: left;
-        }
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
 
-        .markdown-body img {
-            max-width: 100%;
-            height: auto;
-        }
-
-        #viewerContainer:fullscreen {
-            width: 100vw;
-            height: 100vh;
-            border-radius: 0;
-            background: white;
-        }
-
-        [data-theme="dark"] #viewerContainer:fullscreen {
-            background: #0f172a;
-        }
-    </style>
+    iframe.viewer-frame {
+        width: 100%;
+        height: 75vh;
+        border: 0;
+    }
+</style>
 </head>
 
-<body class="bg-gray-50 text-gray-900 min-h-screen transition-colors duration-200 pb-10">
+<body class="bg-slate-50 text-slate-900">
 
-<header class="sticky top-0 z-10 bg-white/90 backdrop-blur-md border-b border-gray-200 px-4 py-3 flex justify-between items-center shadow-sm">
+<div class="max-w-6xl mx-auto px-4 py-4">
 
-    <h1 class="text-lg font-bold text-indigo-600">
-        📚 Учебный помощник
-    </h1>
+    <!-- Шапка -->
+    <header class="panel bg-white border border-slate-200 rounded-2xl shadow-sm p-4 mb-4">
+        <div class="flex items-center justify-between gap-3">
 
-    <div class="flex items-center gap-2">
-        <button
-            id="calendarBtn"
-            class="p-2 rounded-xl bg-gray-100 text-lg"
-            title="Календарь">
-            📅
-        </button>
+            <div>
+                <h1 class="text-2xl font-bold">
+                    📚 Учебный помощник
+                </h1>
+                <p class="text-sm text-slate-500 mt-1">
+                    Учебные материалы, лекции и контрольные вопросы
+                </p>
+            </div>
 
-        <button
-            id="themeToggleBtn"
-            class="p-2 rounded-xl bg-gray-100 text-lg"
-            title="Тема">
-            🌙
-        </button>
-    </div>
+            <div class="flex gap-2">
+                <button
+                    id="themeButton"
+                    onclick="toggleTheme()"
+                    class="secondary bg-slate-100 px-3 py-2 rounded-xl"
+                    title="Сменить тему">
+                    🌙
+                </button>
 
-</header>
+                <button
+                    onclick="openAdmin()"
+                    class="bg-slate-800 text-white px-3 py-2 rounded-xl">
+                    ⚙️
+                </button>
+            </div>
 
-
-<main class="p-4 space-y-4 max-w-md mx-auto">
-
-    <section class="bg-white bg-card p-4 rounded-2xl shadow-sm border border-gray-100 space-y-3">
-
-        <h2 class="text-base font-semibold">
-            🧭 Навигация
-        </h2>
-
-        <select
-            id="semesterSelect"
-            class="w-full p-3 rounded-xl border border-gray-200 bg-white text-base">
-
-            <option value="">
-                Выберите семестр...
-            </option>
-
-        </select>
+        </div>
+    </header>
 
 
-        <select
-            id="subjectSelect"
-            class="w-full p-3 rounded-xl border border-gray-200 bg-white text-base"
-            disabled>
+    <!-- Выбор курса -->
+    <section class="panel bg-white border border-slate-200 rounded-2xl shadow-sm p-4 mb-4">
 
-            <option value="">
-                Сначала выберите семестр...
-            </option>
+        <div class="grid md:grid-cols-3 gap-3">
 
-        </select>
+            <div>
+                <label class="block text-sm font-medium mb-1">
+                    Семестр
+                </label>
 
+                <select id="semesterSelect"
+                        class="w-full border border-slate-300 rounded-xl p-3"
+                        onchange="semesterChanged()">
+                </select>
+            </div>
 
-        <select
-            id="topicSelect"
-            class="w-full p-3 rounded-xl border border-gray-200 bg-white text-base"
-            disabled>
+            <div>
+                <label class="block text-sm font-medium mb-1">
+                    Предмет
+                </label>
 
-            <option value="">
-                Сначала выберите дисциплину...
-            </option>
+                <select id="subjectSelect"
+                        class="w-full border border-slate-300 rounded-xl p-3"
+                        onchange="subjectChanged()">
+                </select>
+            </div>
 
-        </select>
+            <div>
+                <label class="block text-sm font-medium mb-1">
+                    Тема
+                </label>
+
+                <select id="topicSelect"
+                        class="w-full border border-slate-300 rounded-xl p-3"
+                        onchange="topicChanged()">
+                </select>
+            </div>
+
+        </div>
 
     </section>
 
 
-    <section class="bg-white bg-card p-4 rounded-2xl shadow-sm border border-gray-100 space-y-3">
+    <!-- Материалы -->
+    <section class="panel bg-white border border-slate-200 rounded-2xl shadow-sm p-4 mb-4">
 
-        <div class="flex justify-between items-center">
-
-            <h2 class="text-base font-semibold">
-                📖 Материалы темы
+        <div class="flex items-center justify-between gap-3 mb-3">
+            <h2 class="text-xl font-bold">
+                📖 Материалы
             </h2>
 
             <button
-                id="fullScreenBtn"
-                class="text-xs bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg font-medium">
-
-                Во весь экран ⛶
-
+                onclick="refreshMaterials()"
+                class="secondary bg-slate-100 px-3 py-2 rounded-xl text-sm">
+                ↻ Обновить
             </button>
-
         </div>
 
-
-        <div
-            id="materialButtons"
-            class="grid grid-cols-2 gap-2 hidden">
-
-            <button
-                id="lectureBtn"
-                class="bg-indigo-600 text-white py-2.5 rounded-xl text-sm font-medium">
-
-                📖 Лекція
-
-            </button>
-
-            <button
-                id="pdfBtn"
-                class="bg-gray-100 text-gray-700 py-2.5 rounded-xl text-sm font-medium">
-
-                📄 PDF
-
-            </button>
-
-            <button
-                id="docxBtn"
-                class="bg-gray-100 text-gray-700 py-2.5 rounded-xl text-sm font-medium">
-
-                📘 DOCX
-
-            </button>
-
-        </div>
-
-
-        <div
-            id="viewerContainer"
-            class="w-full h-96 border border-gray-200 rounded-xl overflow-hidden bg-gray-100 relative">
-
-            <iframe
-                id="pdfViewer"
-                class="w-full h-full hidden"
-                src="">
-            </iframe>
-
-
-            <div
-                id="markdownViewer"
-                class="hidden w-full h-full overflow-y-auto bg-white p-4">
-
-                <article
-                    id="markdownContent"
-                    class="markdown-body">
-
-                </article>
-
-            </div>
-
-
-            <div
-                id="viewerPlaceholder"
-                class="w-full h-full flex flex-col items-center justify-center p-4 text-center text-gray-400 text-sm">
-
-                <span>
-                    Выберите тему
-                </span>
-
-                <span class="text-xs mt-1">
-                    Здесь появятся учебные материалы
-                </span>
-
-            </div>
-
+        <div id="materialsList"
+             class="grid md:grid-cols-3 gap-3">
         </div>
 
     </section>
 
 
-    <section
-        id="questionsSection"
-        class="bg-white bg-card p-4 rounded-2xl shadow-sm border border-gray-100 space-y-3 hidden">
+    <!-- Просмотр -->
+    <section class="panel bg-white border border-slate-200 rounded-2xl shadow-sm p-4 mb-4">
 
-        <h2 class="text-base font-semibold">
+        <div class="flex items-center justify-between mb-3">
+            <h2 class="text-xl font-bold">
+                👁 Просмотр
+            </h2>
+
+            <button
+                onclick="toggleFullscreen()"
+                class="secondary bg-slate-100 px-3 py-2 rounded-xl text-sm">
+                ⛶ На весь экран
+            </button>
+        </div>
+
+        <div id="viewer"
+             class="prose max-w-none min-h-[300px]">
+            <div class="text-slate-500">
+                Выберите тему и материал.
+            </div>
+        </div>
+
+    </section>
+
+
+    <!-- Контрольные вопросы -->
+    <section class="panel bg-white border border-slate-200 rounded-2xl shadow-sm p-4 mb-4">
+
+        <h2 class="text-xl font-bold mb-3">
             ❓ Контрольные вопросы
         </h2>
 
-        <div
-            id="questionsContainer"
-            class="space-y-2">
+        <div id="questionsList"></div>
+
+    </section>
+
+
+    <!-- Админ-панель -->
+    <section id="adminPanel"
+             class="hidden fixed inset-0 bg-black/60 z-50 overflow-y-auto">
+
+        <div class="max-w-2xl mx-auto px-4 py-8">
+
+            <div class="panel bg-white rounded-2xl shadow-xl p-5">
+
+                <div class="flex justify-between items-center mb-5">
+                    <div>
+                        <h2 class="text-2xl font-bold">
+                            ⚙️ Управление материалами
+                        </h2>
+
+                        <p class="text-sm text-slate-500 mt-1">
+                            Загрузка файлов непосредственно в GitHub
+                        </p>
+                    </div>
+
+                    <button
+                        onclick="closeAdmin()"
+                        class="text-2xl">
+                        ×
+                    </button>
+                </div>
+
+
+                <!-- Авторизация -->
+                <div id="loginBlock">
+
+                    <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4 text-sm text-amber-900">
+                        <strong>Важно.</strong>
+                        Для загрузки файлов нужен GitHub Fine-grained token
+                        с доступом только к этому репозиторию и правом
+                        <strong>Contents: Read and write</strong>.
+                        Токен хранится только в текущей сессии браузера.
+                    </div>
+
+                    <label class="block text-sm font-medium mb-1">
+                        GitHub-токен
+                    </label>
+
+                    <input
+                        id="githubToken"
+                        type="password"
+                        autocomplete="off"
+                        placeholder="github_pat_..."
+                        class="w-full border border-slate-300 rounded-xl p-3 mb-3">
+
+                    <button
+                        onclick="loginGitHub()"
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl p-3 font-medium">
+                        Войти
+                    </button>
+
+                    <div id="loginStatus"
+                         class="mt-3 text-sm">
+                    </div>
+
+                </div>
+
+
+                <!-- Панель управления -->
+                <div id="adminContent" class="hidden">
+
+                    <div class="flex justify-between items-center mb-4">
+
+                        <div>
+                            <div class="font-medium">
+                                Администратор
+                            </div>
+
+                            <div id="githubUser"
+                                 class="text-sm text-slate-500">
+                            </div>
+                        </div>
+
+                        <button
+                            onclick="logoutGitHub()"
+                            class="text-sm text-red-600">
+                            Выйти
+                        </button>
+
+                    </div>
+
+
+                    <!-- Выбор темы -->
+                    <div class="grid gap-3 mb-4">
+
+                        <div>
+                            <label class="block text-sm font-medium mb-1">
+                                Предмет
+                            </label>
+
+                            <select id="adminSubject"
+                                    class="w-full border border-slate-300 rounded-xl p-3"
+                                    onchange="adminSubjectChanged()">
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium mb-1">
+                                Тема
+                            </label>
+
+                            <select id="adminTopic"
+                                    class="w-full border border-slate-300 rounded-xl p-3">
+                            </select>
+                        </div>
+
+                    </div>
+
+
+                    <!-- Загрузка -->
+                    <div class="border border-slate-200 rounded-xl p-4 mb-4">
+
+                        <h3 class="font-bold mb-3">
+                            ➕ Добавить материал
+                        </h3>
+
+                        <label class="block text-sm font-medium mb-1">
+                            Название материала
+                        </label>
+
+                        <input
+                            id="uploadTitle"
+                            type="text"
+                            placeholder="Например: Лекция 1"
+                            class="w-full border border-slate-300 rounded-xl p-3 mb-3">
+
+                        <label class="block text-sm font-medium mb-1">
+                            Файл
+                        </label>
+
+                        <input
+                            id="uploadFile"
+                            type="file"
+                            accept=".md,.markdown,.pdf,.docx"
+                            class="w-full border border-slate-300 rounded-xl p-3 mb-3">
+
+                        <button
+                            onclick="uploadMaterial()"
+                            class="w-full bg-green-600 hover:bg-green-700 text-white rounded-xl p-3 font-medium">
+                            ⬆️ Загрузить материал
+                        </button>
+
+                        <div id="uploadStatus"
+                             class="mt-3 text-sm">
+                        </div>
+
+                    </div>
+
+
+                    <!-- Список файлов -->
+                    <div>
+
+                        <h3 class="font-bold mb-3">
+                            📂 Файлы выбранной темы
+                        </h3>
+
+                        <div id="adminFiles">
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
 
         </div>
 
     </section>
 
 
-    <section
-        id="topicInfo"
-        class="bg-white bg-card p-4 rounded-2xl shadow-sm border border-gray-100 hidden">
+    <!-- Календарь -->
+    <section class="panel bg-white border border-slate-200 rounded-2xl shadow-sm p-4">
 
-        <h2 class="text-base font-semibold mb-2">
-            ℹ️ О теме
+        <h2 class="text-xl font-bold mb-3">
+            📅 Календарь
         </h2>
 
-        <div
-            id="topicDescription"
-            class="text-sm text-gray-600">
+        <input
+            id="studyDate"
+            type="date"
+            class="border border-slate-300 rounded-xl p-3">
 
+        <button
+            onclick="saveStudyDate()"
+            class="ml-2 bg-blue-600 text-white px-4 py-3 rounded-xl">
+            Сохранить
+        </button>
+
+        <div id="dateStatus"
+             class="text-sm text-slate-500 mt-2">
         </div>
 
     </section>
-
-</main>
-
-
-<div
-    id="calendarModal"
-    class="fixed inset-0 bg-black/60 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
-
-    <div
-        class="bg-white bg-card rounded-3xl p-5 w-full max-w-xs space-y-4 shadow-xl">
-
-        <div class="flex justify-between items-center">
-
-            <h3 class="font-bold text-base">
-                📅 Напоминания
-            </h3>
-
-            <button
-                id="closeCalendarBtn"
-                class="text-gray-400 p-1">
-
-                ✕
-
-            </button>
-
-        </div>
-
-
-        <input
-            id="calendarDate"
-            type="date"
-            class="w-full p-3 border rounded-xl text-sm">
-
-
-        <input
-            id="calendarEvent"
-            type="text"
-            placeholder="Событие (Занятие / Экзамен)"
-            class="w-full p-3 border rounded-xl text-sm">
-
-
-        <button
-            id="addEventBtn"
-            class="w-full bg-indigo-600 text-white py-3 rounded-xl font-medium text-sm">
-
-            Добавить
-
-        </button>
-
-
-        <div
-            id="eventsList"
-            class="space-y-2 text-sm">
-
-        </div>
-
-    </div>
 
 </div>
 
 
 <script>
 
-const STUDY_DATA = [
+/* =========================================================
+   НАСТРОЙКИ GITHUB
+   ========================================================= */
 
-    {
-        id: "semester1",
-        name: "1 Семестр",
+const GITHUB_OWNER = "glushich1972-maker";
+const GITHUB_REPO = "Study";
+const GITHUB_BRANCH = "main";
 
-        subjects: [
+const GITHUB_API =
+    `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents`;
 
-            {
-                id: "ok7",
-                name: "ОК 7 — Правове регулювання надання психологічної допомоги",
+const PAGES_BASE =
+    `https://${GITHUB_OWNER}.github.io/${GITHUB_REPO}/`;
+
+
+/* =========================================================
+   ДАННЫЕ УЧЕБНИКА
+   ========================================================= */
+
+const STUDY_DATA = {
+
+    semester1: {
+        title: "1 семестр",
+
+        subjects: {
+
+            OK7: {
+                title: "ОК 7 — Правове регулювання надання психологічної допомоги",
 
                 topics: [
 
                     {
                         id: "topic1",
-                        name: "Тема 1. Загальні питання правового регулювання охорони здоров’я в Україні",
-
-                        description:
-                            "Основи правового регулювання охорони здоров’я, медичне право, фармацевтичне право, психічне здоров’я та біоетика.",
-
-                        materials: {
-                            md: "materials/OK7/topic1/lecture.md",
-                            pdf: "materials/OK7/topic1/official.pdf",
-                            docx: "materials/OK7/topic1/lecture.docx"
-                        },
-
-                        questions: [
-
-                            {
-                                q: "Що таке правова норма?",
-                                a: "Правова норма — загальнообов’язкове правило поведінки, встановлене або визнане державою та забезпечене відповідними засобами державного впливу."
-                            },
-
-                            {
-                                q: "Яка структура правової норми?",
-                                a: "Класична структура включає гіпотезу, диспозицію та санкцію."
-                            },
-
-                            {
-                                q: "Що таке медичне право?",
-                                a: "Медичне право — комплекс правових норм, що регулюють суспільні відносини у сфері охорони здоров’я та медичної діяльності."
-                            }
-
-                        ]
+                        title: "Тема 1. Загальні питання правового регулювання охорони здоров’я в Україні",
+                        path: "materials/OK7/topic1"
                     },
-
 
                     {
                         id: "topic2",
-                        name: "Тема 2. Міжнародні та регіональні стандарти у сфері ментального здоров’я та психологічної діяльності",
-
-                        description:
-                            "Міжнародні стандарти прав людини, європейські документи, професійна етика психолога та права людини у сфері психічного здоров’я.",
-
-                        materials: {
-                            md: "materials/OK7/topic2/lecture.md",
-                            pdf: "materials/OK7/topic2/official.pdf",
-                            docx: "materials/OK7/topic2/lecture.docx"
-                        },
-
-                        questions: [
-
-                            {
-                                q: "Що таке Хартія прав людини?",
-                                a: "До системи Хартії прав людини відносять Загальну декларацію прав людини та два міжнародні пакти ООН — про громадянські і політичні права та про економічні, соціальні і культурні права."
-                            },
-
-                            {
-                                q: "Які основні принципи професійної діяльності психолога?",
-                                a: "Не нашкодь, повага до гідності та автономії людини, конфіденційність, недопущення навішування ярликів, професійна компетентність і моральна відповідальність."
-                            }
-
-                        ]
+                        title: "Тема 2. Міжнародні та регіональні стандарти у сфері ментального здоров’я та психологічної діяльності",
+                        path: "materials/OK7/topic2"
                     },
-
 
                     {
                         id: "topic3",
-                        name: "Тема 3. Правове регулювання діяльності психолога в системі освіти",
-
-                        description:
-                            "Правовий статус психолога в системі освіти України, психологічна служба, права та обов’язки практичного психолога.",
-
-                        materials: {
-                            md: "materials/OK7/topic3/lecture.md",
-                            pdf: "materials/OK7/topic3/official.pdf",
-                            docx: "materials/OK7/topic3/lecture.docx"
-                        },
-
-                        questions: [
-
-                            {
-                                q: "Які основні обов’язки практичного психолога в системі освіти?",
-                                a: "Дотримуватися законодавства та професійної етики, працювати в межах компетентності, забезпечувати конфіденційність, застосовувати науково обґрунтовані методи та поважати гідність учасників освітнього процесу."
-                            },
-
-                            {
-                                q: "Коли потрібна письмова згода батьків?",
-                                a: "Для індивідуальної діагностики та корекції дитини потрібна письмова згода батьків або законного представника, яку можна відкликати."
-                            }
-
-                        ]
+                        title: "Тема 3. Правове регулювання діяльності психолога в системі освіти",
+                        path: "materials/OK7/topic3"
                     },
-
 
                     {
                         id: "topic4",
-                        name: "Тема 4. Правове регулювання психологічної допомоги при захисті прав членів родини",
-
-                        description:
-                            "Домашнє насильство, дискримінація, безоплатна правнича допомога та соціально-психологічна підтримка.",
-
-                        materials: {
-                            md: "materials/OK7/topic4/lecture.md",
-                            pdf: "materials/OK7/topic4/official.pdf",
-                            docx: "materials/OK7/topic4/lecture.docx"
-                        },
-
-                        questions: [
-
-                            {
-                                q: "Що таке домашнє насильство?",
-                                a: "Домашнє насильство — діяння фізичного, сексуального, психологічного або економічного насильства, що вчиняються в сім’ї чи між особами, які мають або мали відповідні сімейні чи близькі відносини."
-                            },
-
-                            {
-                                q: "Які форми дискримінації виділяють?",
-                                a: "Зокрема, пряма та непряма дискримінація, підбурювання до дискримінації, пособництво в дискримінації та утиск."
-                            }
-
-                        ]
+                        title: "Тема 4. Правове регулювання психологічної допомоги при захисті прав членів родини",
+                        path: "materials/OK7/topic4"
                     },
-
 
                     {
                         id: "topic5",
-                        name: "Тема 5. Правове забезпечення діяльності психолога у розв’язанні проблем соціально уразливих категорій населення",
-
-                        description:
-                            "Соціально уразливі категорії населення, складні життєві обставини, соціальні послуги та психологічна допомога постраждалим від війни.",
-
-                        materials: {
-                            md: "materials/OK7/topic5/lecture.md",
-                            pdf: "materials/OK7/topic5/official.pdf",
-                            docx: "materials/OK7/topic5/lecture.docx"
-                        },
-
-                        questions: [
-
-                            {
-                                q: "Що таке складні життєві обставини?",
-                                a: "Це обставини, що негативно впливають на життя, стан здоров’я та розвиток особи або функціонування сім’ї, які особа чи сім’я не може подолати самостійно."
-                            },
-
-                            {
-                                q: "Які основні принципи гуманітарної допомоги?",
-                                a: "Безпека, гідність, повага до прав людини та недискримінація."
-                            }
-
-                        ]
+                        title: "Тема 5. Правове забезпечення діяльності психолога у розв’язанні проблем соціально уразливих категорій населення",
+                        path: "materials/OK7/topic5"
                     },
-
 
                     {
                         id: "topic6",
-                        name: "Тема 6. Юридична відповідальність психолога за професійні правопорушення",
-
-                        description:
-                            "Види юридичної відповідальності, професійні правопорушення, незаконні експерименти та доведення до самогубства.",
-
-                        materials: {
-                            md: "materials/OK7/topic6/lecture.md",
-                            pdf: "materials/OK7/topic6/official.pdf",
-                            docx: "materials/OK7/topic6/lecture.docx"
-                        },
-
-                        questions: [
-
-                            {
-                                q: "Які види юридичної відповідальності існують?",
-                                a: "Конституційна, кримінальна, адміністративна, цивільно-правова та трудова відповідальність."
-                            },
-
-                            {
-                                q: "Що передбачає стаття 142 Кримінального кодексу України?",
-                                a: "Вона встановлює відповідальність за незаконне проведення медико-біологічних, психологічних або інших експериментів, якщо вони створюють небезпеку для життя або здоров’я людини."
-                            },
-
-                            {
-                                q: "Що передбачає стаття 120 Кримінального кодексу України?",
-                                a: "Вона встановлює кримінальну відповідальність за доведення до самогубства та пов’язані з ним протиправні дії."
-                            }
-
-                        ]
+                        title: "Тема 6. Юридична відповідальність психолога за професійні правопорушення",
+                        path: "materials/OK7/topic6"
                     }
 
                 ]
             }
 
-        ]
+        }
     },
 
-
-    {
-        id: "semester2",
-        name: "2 Семестр",
-
-        subjects: [
-
-            {
-                id: "placeholder",
-                name: "Дисципліни будуть додані",
-
-                topics: []
-
-            }
-
-        ]
+    semester2: {
+        title: "2 семестр",
+        subjects: {}
     }
 
-];
+};
 
 
-const semesterSelect =
-    document.getElementById("semesterSelect");
+/* =========================================================
+   КОНТРОЛЬНЫЕ ВОПРОСЫ
+   ========================================================= */
 
-const subjectSelect =
-    document.getElementById("subjectSelect");
+const QUESTIONS = {
 
-const topicSelect =
-    document.getElementById("topicSelect");
+    topic1: [
+        "Що таке право та які його основні ознаки?",
+        "Якою є структура правової норми?",
+        "Що таке медичне право?",
+        "Що таке фармацевтичне право?",
+        "Що таке біоетика та які проблеми вона охоплює?"
+    ],
 
-const materialButtons =
-    document.getElementById("materialButtons");
+    topic2: [
+        "Які основні міжнародні документи формують систему прав людини?",
+        "Що таке Європейська конвенція з прав людини?",
+        "Яку роль відіграє ЄСПЛ?",
+        "Що таке Конвенція Ов’єдо?",
+        "Які етичні принципи є основними для психолога?"
+    ],
 
-const lectureBtn =
-    document.getElementById("lectureBtn");
+    topic3: [
+        "Якими нормативними актами регулюється діяльність психолога в системі освіти?",
+        "Які основні обов’язки практичного психолога?",
+        "Які права має практичний психолог?",
+        "У яких випадках потрібна письмова згода батьків?",
+        "Що таке супервізія та інтервізія?"
+    ],
 
-const pdfBtn =
-    document.getElementById("pdfBtn");
+    topic4: [
+        "Що таке домашнє насильство?",
+        "Які форми насильства виділяються законодавством?",
+        "Що таке дискримінація?",
+        "Яку допомогу може надавати психолог постраждалим?",
+        "Що таке безоплатна правнича допомога?"
+    ],
 
-const docxBtn =
-    document.getElementById("docxBtn");
+    topic5: [
+        "Хто належить до соціально уразливих категорій населення?",
+        "Що таке складні життєві обставини?",
+        "Які принципи має враховувати психолог при роботі з постраждалими від війни?",
+        "Що таке соціальні послуги?",
+        "Що таке супервізія соціальних працівників?"
+    ],
 
-const pdfViewer =
-    document.getElementById("pdfViewer");
+    topic6: [
+        "Які існують види юридичної відповідальності?",
+        "Що таке професійна відповідальність психолога?",
+        "Які умови законності психологічного експерименту?",
+        "Що передбачає відповідальність за доведення до самогубства?",
+        "Які наслідки може мати професійне правопорушення психолога?"
+    ]
 
-const markdownViewer =
-    document.getElementById("markdownViewer");
-
-const markdownContent =
-    document.getElementById("markdownContent");
-
-const viewerPlaceholder =
-    document.getElementById("viewerPlaceholder");
-
-const questionsSection =
-    document.getElementById("questionsSection");
-
-const questionsContainer =
-    document.getElementById("questionsContainer");
-
-const topicInfo =
-    document.getElementById("topicInfo");
-
-const topicDescription =
-    document.getElementById("topicDescription");
-
-const viewerContainer =
-    document.getElementById("viewerContainer");
+};
 
 
-function loadSemesters() {
+/* =========================================================
+   СОСТОЯНИЕ
+   ========================================================= */
 
-    semesterSelect.innerHTML =
-        '<option value="">Выберите семестр...</option>';
+let currentSemester = "semester1";
+let currentSubject = "OK7";
+let currentTopic = null;
 
-    STUDY_DATA.forEach(semester => {
 
-        const option =
-            document.createElement("option");
+/* =========================================================
+   ИНИЦИАЛИЗАЦИЯ
+   ========================================================= */
 
-        option.value = semester.id;
-        option.textContent = semester.name;
+document.addEventListener("DOMContentLoaded", () => {
 
-        semesterSelect.appendChild(option);
+    loadTheme();
+
+    populateSemesters();
+
+    document.getElementById("studyDate").value =
+        localStorage.getItem("studyDate") || "";
+
+    semesterChanged();
+
+});
+
+
+/* =========================================================
+   НАВИГАЦИЯ
+   ========================================================= */
+
+function populateSemesters() {
+
+    const select =
+        document.getElementById("semesterSelect");
+
+    select.innerHTML = "";
+
+    Object.entries(STUDY_DATA).forEach(([id, semester]) => {
+
+        const option = document.createElement("option");
+
+        option.value = id;
+        option.textContent = semester.title;
+
+        select.appendChild(option);
 
     });
+
+    select.value = currentSemester;
 }
 
 
-function loadSubjects() {
+function semesterChanged() {
+
+    currentSemester =
+        document.getElementById("semesterSelect").value;
 
     const semester =
-        STUDY_DATA.find(
-            item => item.id === semesterSelect.value
-        );
+        STUDY_DATA[currentSemester];
 
-    subjectSelect.innerHTML =
-        '<option value="">Выберите дисциплину...</option>';
+    const subjectSelect =
+        document.getElementById("subjectSelect");
 
-    topicSelect.innerHTML =
-        '<option value="">Сначала выберите дисциплину...</option>';
+    subjectSelect.innerHTML = "";
 
-    subjectSelect.disabled = true;
-    topicSelect.disabled = true;
+    Object.entries(semester.subjects).forEach(([id, subject]) => {
 
-    resetViewer();
+        const option = document.createElement("option");
 
-    if (!semester) return;
-
-    semester.subjects.forEach(subject => {
-
-        const option =
-            document.createElement("option");
-
-        option.value = subject.id;
-        option.textContent = subject.name;
+        option.value = id;
+        option.textContent = subject.title;
 
         subjectSelect.appendChild(option);
 
     });
 
-    subjectSelect.disabled = false;
+    if (Object.keys(semester.subjects).length === 0) {
+
+        document.getElementById("topicSelect").innerHTML = "";
+
+        currentTopic = null;
+
+        document.getElementById("materialsList").innerHTML =
+            `<div class="text-slate-500">
+                Для этого семестра материалы пока не добавлены.
+             </div>`;
+
+        document.getElementById("questionsList").innerHTML = "";
+
+        return;
+    }
+
+    currentSubject =
+        Object.keys(semester.subjects)[0];
+
+    subjectSelect.value = currentSubject;
+
+    subjectChanged();
 }
 
 
-function loadTopics() {
+function subjectChanged() {
 
-    const semester =
-        STUDY_DATA.find(
-            item => item.id === semesterSelect.value
-        );
-
-    if (!semester) return;
+    currentSubject =
+        document.getElementById("subjectSelect").value;
 
     const subject =
-        semester.subjects.find(
-            item => item.id === subjectSelect.value
+        STUDY_DATA[currentSemester].subjects[currentSubject];
+
+    const topicSelect =
+        document.getElementById("topicSelect");
+
+    topicSelect.innerHTML = "";
+
+    subject.topics.forEach(topic => {
+
+        const option = document.createElement("option");
+
+        option.value = topic.id;
+        option.textContent = topic.title;
+
+        topicSelect.appendChild(option);
+
+    });
+
+    if (subject.topics.length) {
+
+        currentTopic = subject.topics[0].id;
+
+        topicSelect.value = currentTopic;
+
+        topicChanged();
+
+    }
+}
+
+
+async function topicChanged() {
+
+    currentTopic =
+        document.getElementById("topicSelect").value;
+
+    await refreshMaterials();
+
+    showQuestions();
+}
+
+
+/* =========================================================
+   РАБОТА С МАТЕРИАЛАМИ
+   ========================================================= */
+
+function getCurrentTopic() {
+
+    const subject =
+        STUDY_DATA[currentSemester].subjects[currentSubject];
+
+    return subject.topics.find(t => t.id === currentTopic);
+}
+
+
+async function refreshMaterials() {
+
+    const container =
+        document.getElementById("materialsList");
+
+    if (!currentTopic) return;
+
+    container.innerHTML =
+        `<div class="text-slate-500">
+            <span class="spinner"></span>
+            Загрузка списка материалов...
+         </div>`;
+
+    const topic = getCurrentTopic();
+
+    try {
+
+        const response =
+            await fetch(
+                `${GITHUB_API}/${topic.path}`,
+                {
+                    headers: {
+                        "Accept": "application/vnd.github+json"
+                    }
+                }
+            );
+
+        if (!response.ok) {
+
+            if (response.status === 404) {
+
+                container.innerHTML =
+                    `<div class="text-slate-500">
+                        Материалы пока не загружены.
+                     </div>`;
+
+                return;
+            }
+
+            throw new Error(
+                "Ошибка GitHub API: " + response.status
+            );
+        }
+
+        const files = await response.json();
+
+        if (!Array.isArray(files) || !files.length) {
+
+            container.innerHTML =
+                `<div class="text-slate-500">
+                    Материалы пока не загружены.
+                 </div>`;
+
+            return;
+        }
+
+        container.innerHTML = "";
+
+        files
+            .filter(file => file.type === "file")
+            .forEach(file => {
+
+                const card =
+                    document.createElement("div");
+
+                card.className =
+                    "material-card border border-slate-200 rounded-xl p-4";
+
+                const ext =
+                    getExtension(file.name);
+
+                let icon = "📄";
+
+                if (ext === "pdf") icon = "📕";
+                if (ext === "docx") icon = "📘";
+                if (ext === "md" || ext === "markdown")
+                    icon = "📝";
+
+                card.innerHTML = `
+
+                    <div class="text-2xl mb-2">
+                        ${icon}
+                    </div>
+
+                    <div class="font-medium break-words">
+                        ${escapeHtml(file.name)}
+                    </div>
+
+                    <div class="text-xs text-slate-500 mt-1 uppercase">
+                        ${ext}
+                    </div>
+
+                    <button
+                        class="mt-3 w-full bg-blue-600 text-white rounded-lg py-2">
+                        Открыть
+                    </button>
+                `;
+
+                card.querySelector("button")
+                    .addEventListener("click", () => {
+
+                        openMaterial(file);
+
+                    });
+
+                container.appendChild(card);
+
+            });
+
+    } catch (error) {
+
+        console.error(error);
+
+        container.innerHTML =
+            `<div class="text-red-600">
+                Не удалось загрузить список материалов.
+                <br>
+                <small>${escapeHtml(error.message)}</small>
+             </div>`;
+    }
+}
+
+
+/* =========================================================
+   ОТКРЫТИЕ МАТЕРИАЛА
+   ========================================================= */
+
+async function openMaterial(file) {
+
+    const viewer =
+        document.getElementById("viewer");
+
+    const ext =
+        getExtension(file.name);
+
+    const rawUrl =
+        `https://raw.githubusercontent.com/` +
+        `${GITHUB_OWNER}/${GITHUB_REPO}/` +
+        `${GITHUB_BRANCH}/${file.path}`;
+
+    if (ext === "md" || ext === "markdown") {
+
+        viewer.innerHTML =
+            `<div class="text-slate-500">
+                <span class="spinner"></span>
+                Загрузка текста...
+             </div>`;
+
+        try {
+
+            const response =
+                await fetch(rawUrl);
+
+            if (!response.ok)
+                throw new Error("Не удалось загрузить Markdown");
+
+            const text =
+                await response.text();
+
+            viewer.innerHTML =
+                marked.parse(text);
+
+            fixMarkdownImages(viewer, file.path);
+
+        } catch (error) {
+
+            viewer.innerHTML =
+                `<div class="text-red-600">
+                    Ошибка загрузки Markdown:
+                    ${escapeHtml(error.message)}
+                 </div>`;
+        }
+
+        return;
+    }
+
+
+    if (ext === "pdf") {
+
+        viewer.innerHTML = `
+            <iframe
+                class="viewer-frame"
+                src="${rawUrl}">
+            </iframe>
+
+            <div class="mt-3 text-center">
+                <a
+                    href="${rawUrl}"
+                    target="_blank"
+                    class="text-blue-600 underline">
+                    Открыть PDF отдельно
+                </a>
+            </div>
+        `;
+
+        return;
+    }
+
+
+    if (ext === "docx") {
+
+        const encoded =
+            encodeURIComponent(rawUrl);
+
+        const officeUrl =
+            "https://view.officeapps.live.com/op/embed.aspx?src=" +
+            encoded;
+
+        viewer.innerHTML = `
+            <iframe
+                class="viewer-frame"
+                src="${officeUrl}">
+            </iframe>
+
+            <div class="mt-3 text-center">
+
+                <a
+                    href="${rawUrl}"
+                    target="_blank"
+                    class="text-blue-600 underline">
+                    Открыть или скачать DOCX
+                </a>
+
+            </div>
+        `;
+
+        return;
+    }
+
+
+    viewer.innerHTML =
+        `<div class="text-red-600">
+            Этот тип файла пока не поддерживается.
+         </div>`;
+}
+
+
+/* =========================================================
+   MARKDOWN
+   ========================================================= */
+
+function fixMarkdownImages(container, filePath) {
+
+    const directory =
+        filePath.substring(
+            0,
+            filePath.lastIndexOf("/") + 1
         );
 
-    topicSelect.innerHTML =
-        '<option value="">Выберите тему...</option>';
+    container.querySelectorAll("img")
+        .forEach(img => {
 
-    topicSelect.disabled = true;
+            const src = img.getAttribute("src");
 
-    resetViewer();
+            if (!src) return;
 
-    if (!subject) return;
+            if (
+                src.startsWith("http://") ||
+                src.startsWith("https://") ||
+                src.startsWith("/")
+            ) {
+                return;
+            }
+
+            const imagePath =
+                directory + src;
+
+            img.src =
+                `https://raw.githubusercontent.com/` +
+                `${GITHUB_OWNER}/${GITHUB_REPO}/` +
+                `${GITHUB_BRANCH}/${imagePath}`;
+        });
+}
+
+
+/* =========================================================
+   ВОПРОСЫ
+   ========================================================= */
+
+function showQuestions() {
+
+    const container =
+        document.getElementById("questionsList");
+
+    const questions =
+        QUESTIONS[currentTopic] || [];
+
+    if (!questions.length) {
+
+        container.innerHTML =
+            `<div class="text-slate-500">
+                Контрольные вопросы пока не добавлены.
+             </div>`;
+
+        return;
+    }
+
+    container.innerHTML = "";
+
+    questions.forEach((question, index) => {
+
+        const item =
+            document.createElement("div");
+
+        item.className =
+            "border-b border-slate-200 py-3";
+
+        item.innerHTML = `
+            <div class="font-medium">
+                ${index + 1}. ${escapeHtml(question)}
+            </div>
+        `;
+
+        container.appendChild(item);
+
+    });
+}
+
+
+/* =========================================================
+   АДМИНКА
+   ========================================================= */
+
+function openAdmin() {
+
+    document
+        .getElementById("adminPanel")
+        .classList.remove("hidden");
+
+    checkStoredToken();
+
+}
+
+
+function closeAdmin() {
+
+    document
+        .getElementById("adminPanel")
+        .classList.add("hidden");
+
+}
+
+
+function checkStoredToken() {
+
+    const token =
+        sessionStorage.getItem("githubToken");
+
+    if (token) {
+
+        document
+            .getElementById("loginBlock")
+            .classList.add("hidden");
+
+        document
+            .getElementById("adminContent")
+            .classList.remove("hidden");
+
+        populateAdminSubjects();
+
+        loadAdminFiles();
+
+    } else {
+
+        document
+            .getElementById("loginBlock")
+            .classList.remove("hidden");
+
+        document
+            .getElementById("adminContent")
+            .classList.add("hidden");
+
+    }
+}
+
+
+async function loginGitHub() {
+
+    const input =
+        document.getElementById("githubToken");
+
+    const token =
+        input.value.trim();
+
+    const status =
+        document.getElementById("loginStatus");
+
+    if (!token) {
+
+        status.innerHTML =
+            `<span class="text-red-600">
+                Введите GitHub-токен.
+             </span>`;
+
+        return;
+    }
+
+    status.innerHTML =
+        `<span class="spinner"></span>
+         Проверяем доступ...`;
+
+    try {
+
+        const response =
+            await fetch(
+                `${GITHUB_API}`,
+                {
+                    headers: {
+                        "Accept":
+                            "application/vnd.github+json",
+
+                        "Authorization":
+                            `Bearer ${token}`,
+
+                        "X-GitHub-Api-Version":
+                            "2022-11-28"
+                    }
+                }
+            );
+
+        if (!response.ok) {
+
+            throw new Error(
+                "GitHub не принял токен."
+            );
+        }
+
+        sessionStorage.setItem(
+            "githubToken",
+            token
+        );
+
+        status.innerHTML =
+            `<span class="text-green-600">
+                Доступ получен.
+             </span>`;
+
+        document
+            .getElementById("loginBlock")
+            .classList.add("hidden");
+
+        document
+            .getElementById("adminContent")
+            .classList.remove("hidden");
+
+        populateAdminSubjects();
+
+        loadAdminFiles();
+
+    } catch (error) {
+
+        status.innerHTML =
+            `<span class="text-red-600">
+                ${escapeHtml(error.message)}
+             </span>`;
+
+    }
+}
+
+
+function logoutGitHub() {
+
+    sessionStorage.removeItem("githubToken");
+
+    document
+        .getElementById("adminContent")
+        .classList.add("hidden");
+
+    document
+        .getElementById("loginBlock")
+        .classList.remove("hidden");
+
+}
+
+
+/* =========================================================
+   АДМИН — ВЫБОР ПРЕДМЕТА И ТЕМЫ
+   ========================================================= */
+
+function populateAdminSubjects() {
+
+    const select =
+        document.getElementById("adminSubject");
+
+    select.innerHTML = "";
+
+    const semester =
+        STUDY_DATA[currentSemester];
+
+    Object.entries(semester.subjects)
+        .forEach(([id, subject]) => {
+
+            const option =
+                document.createElement("option");
+
+            option.value = id;
+            option.textContent = subject.title;
+
+            select.appendChild(option);
+
+        });
+
+    select.value = currentSubject;
+
+    adminSubjectChanged();
+}
+
+
+function adminSubjectChanged() {
+
+    const subjectId =
+        document.getElementById("adminSubject").value;
+
+    const subject =
+        STUDY_DATA[currentSemester]
+            .subjects[subjectId];
+
+    const select =
+        document.getElementById("adminTopic");
+
+    select.innerHTML = "";
 
     subject.topics.forEach(topic => {
 
@@ -738,624 +1280,631 @@ function loadTopics() {
             document.createElement("option");
 
         option.value = topic.id;
-        option.textContent = topic.name;
+        option.textContent = topic.title;
 
-        topicSelect.appendChild(option);
+        select.appendChild(option);
 
     });
 
-    topicSelect.disabled = false;
+    select.value = currentTopic;
+
+    loadAdminFiles();
 }
 
 
-function getCurrentTopic() {
+/* =========================================================
+   АДМИН — СПИСОК ФАЙЛОВ
+   ========================================================= */
 
-    const semester =
-        STUDY_DATA.find(
-            item => item.id === semesterSelect.value
-        );
+async function loadAdminFiles() {
 
-    if (!semester) return null;
+    const container =
+        document.getElementById("adminFiles");
 
-    const subject =
-        semester.subjects.find(
-            item => item.id === subjectSelect.value
-        );
+    if (!container) return;
 
-    if (!subject) return null;
+    const topicId =
+        document.getElementById("adminTopic")?.value;
 
-    return subject.topics.find(
-        item => item.id === topicSelect.value
-    ) || null;
-}
+    if (!topicId) return;
 
+    const subjectId =
+        document.getElementById("adminSubject").value;
 
-function showTopic() {
-
-    const topic = getCurrentTopic();
-
-    resetViewer();
+    const topic =
+        STUDY_DATA[currentSemester]
+            .subjects[subjectId]
+            .topics
+            .find(t => t.id === topicId);
 
     if (!topic) return;
 
-    topicInfo.classList.remove("hidden");
-
-    topicDescription.textContent =
-        topic.description || "";
-
-    materialButtons.classList.remove("hidden");
-
-    questionsContainer.innerHTML = "";
-
-    if (topic.questions && topic.questions.length > 0) {
-
-        questionsSection.classList.remove("hidden");
-
-        topic.questions.forEach((item, index) => {
-
-            const details =
-                document.createElement("details");
-
-            details.className =
-                "group bg-gray-50 p-3 rounded-xl border border-gray-200";
-
-
-            const summary =
-                document.createElement("summary");
-
-            summary.className =
-                "font-medium cursor-pointer list-none flex justify-between items-center";
-
-
-            const question =
-                document.createElement("span");
-
-            question.textContent =
-                `${index + 1}. ${item.q}`;
-
-
-            const arrow =
-                document.createElement("span");
-
-            arrow.className =
-                "text-xs transition group-open:rotate-180";
-
-            arrow.textContent = "▼";
-
-
-            summary.appendChild(question);
-            summary.appendChild(arrow);
-
-
-            const answer =
-                document.createElement("div");
-
-            answer.className =
-                "mt-2 text-sm text-gray-600 border-t pt-2";
-
-            answer.textContent =
-                item.a;
-
-
-            details.appendChild(summary);
-            details.appendChild(answer);
-
-            questionsContainer.appendChild(details);
-
-        });
-
-    } else {
-
-        questionsSection.classList.add("hidden");
-
-    }
-
-    if (topic.materials && topic.materials.md) {
-        loadMarkdown(topic.materials.md);
-    }
-
-}
-
-
-async function loadMarkdown(url) {
-
-    hideAllViewers();
-
-    viewerPlaceholder.classList.add("hidden");
-
-    markdownViewer.classList.remove("hidden");
-
-    markdownContent.innerHTML =
-        '<div class="text-center text-gray-400 py-10">Загрузка лекции...</div>';
+    container.innerHTML =
+        `<div class="text-slate-500">
+            Загрузка...
+         </div>`;
 
     try {
 
-        const response =
-            await fetch(url);
+        const token =
+            sessionStorage.getItem("githubToken");
 
-        if (!response.ok) {
-            throw new Error("Файл не найден");
+        const response =
+            await fetch(
+                `${GITHUB_API}/${topic.path}`,
+                {
+                    headers: githubHeaders(token)
+                }
+            );
+
+        if (response.status === 404) {
+
+            container.innerHTML =
+                `<div class="text-slate-500">
+                    Файлов пока нет.
+                 </div>`;
+
+            return;
         }
 
-        const text =
-            await response.text();
+        if (!response.ok)
+            throw new Error(
+                "Не удалось получить список файлов."
+            );
 
-        markdownContent.innerHTML =
-            marked.parse(text);
+        const files =
+            await response.json();
 
+        container.innerHTML = "";
 
-        const images =
-            markdownContent.querySelectorAll("img");
+        files
+            .filter(file => file.type === "file")
+            .forEach(file => {
 
-        images.forEach(img => {
+                const row =
+                    document.createElement("div");
 
-            const src =
-                img.getAttribute("src");
+                row.className =
+                    "border border-slate-200 rounded-xl p-3 mb-2";
 
-            if (
-                src &&
-                !src.startsWith("http") &&
-                !src.startsWith("/")
-            ) {
+                row.innerHTML = `
 
-                const base =
-                    url.substring(
-                        0,
-                        url.lastIndexOf("/") + 1
+                    <div class="flex items-center justify-between gap-3">
+
+                        <div class="min-w-0">
+                            <div class="font-medium break-words">
+                                ${escapeHtml(file.name)}
+                            </div>
+
+                            <div class="text-xs text-slate-500">
+                                ${formatBytes(file.size)}
+                            </div>
+                        </div>
+
+                        <button
+                            class="shrink-0 text-red-600 border border-red-200 px-3 py-2 rounded-lg">
+                            Удалить
+                        </button>
+
+                    </div>
+                `;
+
+                row.querySelector("button")
+                    .addEventListener(
+                        "click",
+                        () => deleteMaterial(file)
                     );
 
-                img.src =
-                    base + src;
+                container.appendChild(row);
 
-            }
-
-        });
+            });
 
     } catch (error) {
 
-        markdownContent.innerHTML = `
-            <div class="text-center text-red-500 py-10">
-                Не удалось загрузить лекцию.
-                <br>
-                <span class="text-xs">
-                    ${error.message}
-                </span>
-            </div>
-        `;
+        container.innerHTML =
+            `<div class="text-red-600">
+                ${escapeHtml(error.message)}
+             </div>`;
+    }
+}
 
+
+/* =========================================================
+   ЗАГРУЗКА ФАЙЛА
+   ========================================================= */
+
+async function uploadMaterial() {
+
+    const status =
+        document.getElementById("uploadStatus");
+
+    const title =
+        document.getElementById("uploadTitle")
+            .value
+            .trim();
+
+    const fileInput =
+        document.getElementById("uploadFile");
+
+    const file =
+        fileInput.files[0];
+
+    const subjectId =
+        document.getElementById("adminSubject").value;
+
+    const topicId =
+        document.getElementById("adminTopic").value;
+
+    if (!file) {
+
+        status.innerHTML =
+            `<span class="text-red-600">
+                Выберите файл.
+             </span>`;
+
+        return;
     }
 
-}
+    if (file.size > 90 * 1024 * 1024) {
 
+        status.innerHTML =
+            `<span class="text-red-600">
+                Файл слишком большой. Максимум около 90 МБ.
+             </span>`;
 
-function loadPDF(url) {
+        return;
+    }
 
-    hideAllViewers();
+    const allowed =
+        ["md", "markdown", "pdf", "docx"];
 
-    viewerPlaceholder.classList.add("hidden");
+    const extension =
+        getExtension(file.name);
 
-    pdfViewer.classList.remove("hidden");
+    if (!allowed.includes(extension)) {
 
-    pdfViewer.src = url;
+        status.innerHTML =
+            `<span class="text-red-600">
+                Разрешены только MD, PDF и DOCX.
+             </span>`;
 
-}
-
-
-function loadDOCX(url) {
-
-    hideAllViewers();
-
-    viewerPlaceholder.classList.add("hidden");
-
-    pdfViewer.classList.remove("hidden");
-
-    const absoluteURL =
-        new URL(url, window.location.href).href;
-
-    pdfViewer.src =
-        "https://view.officeapps.live.com/op/embed.aspx?src="
-        + encodeURIComponent(absoluteURL);
-
-}
-
-
-function hideAllViewers() {
-
-    pdfViewer.classList.add("hidden");
-
-    markdownViewer.classList.add("hidden");
-
-    pdfViewer.src = "";
-
-}
-
-
-function resetViewer() {
-
-    hideAllViewers();
-
-    materialButtons.classList.add("hidden");
-
-    questionsSection.classList.add("hidden");
-
-    topicInfo.classList.add("hidden");
-
-    markdownContent.innerHTML = "";
-
-    viewerPlaceholder.classList.remove("hidden");
-
-}
-
-
-semesterSelect.addEventListener(
-    "change",
-    loadSubjects
-);
-
-subjectSelect.addEventListener(
-    "change",
-    loadTopics
-);
-
-topicSelect.addEventListener(
-    "change",
-    showTopic
-);
-
-
-lectureBtn.addEventListener("click", () => {
+        return;
+    }
 
     const topic =
-        getCurrentTopic();
+        STUDY_DATA[currentSemester]
+            .subjects[subjectId]
+            .topics
+            .find(t => t.id === topicId);
 
-    if (!topic || !topic.materials.md) return;
+    if (!topic) {
 
-    loadMarkdown(
-        topic.materials.md
-    );
+        status.innerHTML =
+            `<span class="text-red-600">
+                Не удалось определить тему.
+             </span>`;
 
-});
-
-
-pdfBtn.addEventListener("click", () => {
-
-    const topic =
-        getCurrentTopic();
-
-    if (!topic || !topic.materials.pdf) return;
-
-    loadPDF(
-        topic.materials.pdf
-    );
-
-});
-
-
-docxBtn.addEventListener("click", () => {
-
-    const topic =
-        getCurrentTopic();
-
-    if (!topic || !topic.materials.docx) return;
-
-    loadDOCX(
-        topic.materials.docx
-    );
-
-});
-
-
-const themeBtn =
-    document.getElementById("themeToggleBtn");
-
-
-function setTheme(theme) {
-
-    document.documentElement
-        .setAttribute("data-theme", theme);
-
-    themeBtn.textContent =
-        theme === "light"
-            ? "🌙"
-            : "☀️";
-
-    localStorage.setItem(
-        "study-theme",
-        theme
-    );
-
-}
-
-
-themeBtn.addEventListener(
-    "click",
-    () => {
-
-        const current =
-            document.documentElement
-                .getAttribute("data-theme");
-
-        setTheme(
-            current === "light"
-                ? "dark"
-                : "light"
-        );
-
+        return;
     }
-);
 
-
-const savedTheme =
-    localStorage.getItem("study-theme");
-
-if (savedTheme) {
-    setTheme(savedTheme);
-}
-
-
-const fullScreenBtn =
-    document.getElementById("fullScreenBtn");
-
-
-fullScreenBtn.addEventListener(
-    "click",
-    () => {
-
-        if (!document.fullscreenElement) {
-
-            viewerContainer
-                .requestFullscreen()
-                .catch(error => {
-                    alert(error.message);
-                });
-
-        } else {
-
-            document.exitFullscreen();
-
-        }
-
-    }
-);
-
-
-const calendarBtn =
-    document.getElementById("calendarBtn");
-
-const closeCalendarBtn =
-    document.getElementById("closeCalendarBtn");
-
-const calendarModal =
-    document.getElementById("calendarModal");
-
-const addEventBtn =
-    document.getElementById("addEventBtn");
-
-const calendarDate =
-    document.getElementById("calendarDate");
-
-const calendarEvent =
-    document.getElementById("calendarEvent");
-
-const eventsList =
-    document.getElementById("eventsList");
-
-
-calendarBtn.addEventListener(
-    "click",
-    () => {
-
-        calendarModal.classList
-            .remove("hidden");
-
-        calendarModal.classList
-            .add("flex");
-
-        renderEvents();
-
-    }
-);
-
-
-closeCalendarBtn.addEventListener(
-    "click",
-    closeCalendar
-);
-
-
-calendarModal.addEventListener(
-    "click",
-    event => {
-
-        if (event.target === calendarModal) {
-            closeCalendar();
-        }
-
-    }
-);
-
-
-function closeCalendar() {
-
-    calendarModal.classList
-        .add("hidden");
-
-    calendarModal.classList
-        .remove("flex");
-
-}
-
-
-function getEvents() {
+    status.innerHTML =
+        `<span class="spinner"></span>
+         Подготовка файла...`;
 
     try {
 
-        return JSON.parse(
-            localStorage.getItem(
-                "study-events"
-            )
-        ) || [];
+        const token =
+            sessionStorage.getItem("githubToken");
 
-    } catch {
-
-        return [];
-
-    }
-
-}
-
-
-function saveEvents(events) {
-
-    localStorage.setItem(
-        "study-events",
-        JSON.stringify(events)
-    );
-
-}
-
-
-addEventBtn.addEventListener(
-    "click",
-    () => {
-
-        const date =
-            calendarDate.value;
-
-        const text =
-            calendarEvent.value.trim();
-
-        if (!date || !text) {
-
-            alert(
-                "Укажите дату и событие."
+        if (!token)
+            throw new Error(
+                "Сначала войдите в GitHub."
             );
 
-            return;
 
+        /*
+         * Название файла.
+         *
+         * Если пользователь указал название,
+         * сохраняем его, но расширение берём
+         * от исходного файла.
+         */
+
+        let filename =
+            title
+                ? sanitizeFilename(title) + "." + extension
+                : sanitizeFilename(file.name);
+
+
+        /*
+         * Читаем файл как Base64.
+         */
+
+        const base64 =
+            await fileToBase64(file);
+
+
+        const path =
+            `${topic.path}/${filename}`;
+
+
+        /*
+         * Проверяем, существует ли файл.
+         * Если существует — получаем его SHA,
+         * чтобы заменить существующий файл.
+         */
+
+        let existingSha = null;
+
+        const check =
+            await fetch(
+                `${GITHUB_API}/${path}`,
+                {
+                    headers:
+                        githubHeaders(token)
+                }
+            );
+
+        if (check.ok) {
+
+            const existing =
+                await check.json();
+
+            existingSha =
+                existing.sha;
         }
 
 
-        const events =
-            getEvents();
+        status.innerHTML =
+            `<span class="spinner"></span>
+             Загружаем файл в GitHub...`;
 
 
-        events.push({
-            date: date,
-            text: text
-        });
+        const body = {
+
+            message:
+                `${existingSha ? "Обновление" : "Добавление"} материала: ${filename}`,
+
+            content: base64,
+
+            branch: GITHUB_BRANCH
+
+        };
+
+        if (existingSha) {
+            body.sha = existingSha;
+        }
 
 
-        events.sort(
-            (a, b) =>
-                a.date.localeCompare(b.date)
-        );
+        const response =
+            await fetch(
+                `${GITHUB_API}/${path}`,
+                {
+                    method: "PUT",
 
+                    headers:
+                        githubHeaders(token),
 
-        saveEvents(events);
-
-        calendarEvent.value = "";
-
-        renderEvents();
-
-    }
-);
-
-
-function renderEvents() {
-
-    const events =
-        getEvents();
-
-    eventsList.innerHTML = "";
-
-
-    if (events.length === 0) {
-
-        eventsList.innerHTML =
-            '<div class="text-gray-400 text-center py-2">Пока нет напоминаний.</div>';
-
-        return;
-
-    }
-
-
-    events.forEach(
-        (event, index) => {
-
-            const item =
-                document.createElement("div");
-
-            item.className =
-                "flex justify-between items-center bg-gray-50 p-3 rounded-xl";
-
-
-            const info =
-                document.createElement("div");
-
-            const date =
-                document.createElement("div");
-
-            date.className =
-                "font-medium";
-
-            date.textContent =
-                event.date;
-
-
-            const text =
-                document.createElement("div");
-
-            text.className =
-                "text-gray-500 text-xs mt-1";
-
-            text.textContent =
-                event.text;
-
-
-            info.appendChild(date);
-            info.appendChild(text);
-
-
-            const deleteBtn =
-                document.createElement("button");
-
-            deleteBtn.className =
-                "text-red-400 text-xs ml-2";
-
-            deleteBtn.textContent =
-                "✕";
-
-
-            deleteBtn.addEventListener(
-                "click",
-                () => {
-
-                    events.splice(
-                        index,
-                        1
-                    );
-
-                    saveEvents(events);
-
-                    renderEvents();
-
+                    body:
+                        JSON.stringify(body)
                 }
             );
 
 
-            item.appendChild(info);
-            item.appendChild(deleteBtn);
+        if (!response.ok) {
 
-            eventsList.appendChild(item);
+            const error =
+                await response.json()
+                    .catch(() => ({}));
 
+            throw new Error(
+                error.message ||
+                "GitHub не принял файл."
+            );
         }
-    );
 
+
+        status.innerHTML =
+            `<span class="text-green-600">
+                ✓ Материал успешно загружен.
+             </span>`;
+
+
+        document
+            .getElementById("uploadTitle")
+            .value = "";
+
+        fileInput.value = "";
+
+
+        await loadAdminFiles();
+
+        await refreshMaterials();
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        status.innerHTML =
+            `<span class="text-red-600">
+                Ошибка: ${escapeHtml(error.message)}
+             </span>`;
+    }
 }
 
 
-loadSemesters();
+/* =========================================================
+   УДАЛЕНИЕ
+   ========================================================= */
+
+async function deleteMaterial(file) {
+
+    const confirmed =
+        confirm(
+            `Удалить файл "${file.name}"?`
+        );
+
+    if (!confirmed) return;
+
+    try {
+
+        const token =
+            sessionStorage.getItem("githubToken");
+
+        if (!token)
+            throw new Error(
+                "Нет доступа к GitHub."
+            );
+
+        const response =
+            await fetch(
+                `${GITHUB_API}/${file.path}`,
+                {
+                    method: "DELETE",
+
+                    headers:
+                        githubHeaders(token),
+
+                    body:
+                        JSON.stringify({
+
+                            message:
+                                `Удаление материала: ${file.name}`,
+
+                            sha:
+                                file.sha,
+
+                            branch:
+                                GITHUB_BRANCH
+
+                        })
+                }
+            );
+
+
+        if (!response.ok) {
+
+            const error =
+                await response.json()
+                    .catch(() => ({}));
+
+            throw new Error(
+                error.message ||
+                "Не удалось удалить файл."
+            );
+        }
+
+
+        await loadAdminFiles();
+
+        await refreshMaterials();
+
+    } catch (error) {
+
+        alert(
+            "Ошибка удаления: " +
+            error.message
+        );
+    }
+}
+
+
+/* =========================================================
+   GITHUB HELPERS
+   ========================================================= */
+
+function githubHeaders(token) {
+
+    return {
+
+        "Accept":
+            "application/vnd.github+json",
+
+        "Authorization":
+            `Bearer ${token}`,
+
+        "X-GitHub-Api-Version":
+            "2022-11-28",
+
+        "Content-Type":
+            "application/json"
+
+    };
+}
+
+
+function fileToBase64(file) {
+
+    return new Promise(
+        (resolve, reject) => {
+
+            const reader =
+                new FileReader();
+
+            reader.onload = () => {
+
+                const result =
+                    reader.result;
+
+                /*
+                 * Убираем:
+                 * data:application/pdf;base64,
+                 */
+
+                const base64 =
+                    result
+                        .split(",")[1];
+
+                resolve(base64);
+            };
+
+            reader.onerror =
+                reject;
+
+            reader.readAsDataURL(file);
+        }
+    );
+}
+
+
+/* =========================================================
+   ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+   ========================================================= */
+
+function getExtension(filename) {
+
+    return filename
+        .split(".")
+        .pop()
+        .toLowerCase();
+}
+
+
+function sanitizeFilename(name) {
+
+    return name
+        .replace(/[\\/:*?"<>|#%{}]/g, "_")
+        .replace(/\s+/g, "_")
+        .substring(0, 150);
+}
+
+
+function formatBytes(bytes) {
+
+    if (!bytes)
+        return "0 Б";
+
+    const units =
+        ["Б", "КБ", "МБ", "ГБ"];
+
+    let i = 0;
+    let value = bytes;
+
+    while (
+        value >= 1024 &&
+        i < units.length - 1
+    ) {
+
+        value /= 1024;
+        i++;
+    }
+
+    return value.toFixed(
+        value >= 10 || i === 0 ? 0 : 1
+    ) + " " + units[i];
+}
+
+
+function escapeHtml(text) {
+
+    return String(text)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+
+/* =========================================================
+   ТЕМА
+   ========================================================= */
+
+function toggleTheme() {
+
+    const isDark =
+        document.documentElement
+            .classList.toggle("dark");
+
+    localStorage.setItem(
+        "darkMode",
+        isDark ? "1" : "0"
+    );
+
+    document.getElementById("themeButton")
+        .textContent =
+        isDark ? "☀️" : "🌙";
+}
+
+
+function loadTheme() {
+
+    const dark =
+        localStorage.getItem("darkMode");
+
+    if (dark === "1") {
+
+        document.documentElement
+            .classList.add("dark");
+
+        document.getElementById("themeButton")
+            .textContent = "☀️";
+    }
+}
+
+
+/* =========================================================
+   ПОЛНОЭКРАННЫЙ ПРОСМОТР
+   ========================================================= */
+
+function toggleFullscreen() {
+
+    const viewer =
+        document.getElementById("viewer");
+
+    if (!document.fullscreenElement) {
+
+        viewer.requestFullscreen?.();
+
+    } else {
+
+        document.exitFullscreen?.();
+
+    }
+}
+
+
+/* =========================================================
+   КАЛЕНДАРЬ
+   ========================================================= */
+
+function saveStudyDate() {
+
+    const value =
+        document.getElementById("studyDate").value;
+
+    localStorage.setItem(
+        "studyDate",
+        value
+    );
+
+    document.getElementById("dateStatus")
+        .textContent =
+        value
+            ? "Дата сохранена."
+            : "Дата не выбрана.";
+}
 
 </script>
 

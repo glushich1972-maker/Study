@@ -1,140 +1,1363 @@
+
 <!DOCTYPE html>
 <html lang="ru" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Помощник в учебе</title>
+
+    <title>Учебный помощник</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
     <style>
         [data-theme="dark"] {
             background-color: #0f172a;
             color: #f8fafc;
         }
+
         [data-theme="dark"] .bg-card {
             background-color: #1e293b;
             border-color: #334155;
         }
-        [data-theme="dark"] select, 
+
+        [data-theme="dark"] select,
         [data-theme="dark"] input,
         [data-theme="dark"] details {
             background-color: #334155;
             color: #ffffff;
             border-color: #475569;
         }
+
+        [data-theme="dark"] .text-gray-600 {
+            color: #cbd5e1;
+        }
+
+        [data-theme="dark"] .text-gray-400 {
+            color: #94a3b8;
+        }
+
+        [data-theme="dark"] .bg-gray-50 {
+            background-color: #1e293b;
+        }
+
+        [data-theme="dark"] .border-gray-200 {
+            border-color: #475569;
+        }
+
+        .markdown-body {
+            line-height: 1.65;
+            font-size: 15px;
+        }
+
+        .markdown-body h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0 0 1rem;
+        }
+
+        .markdown-body h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 1.5rem 0 .75rem;
+        }
+
+        .markdown-body h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin: 1.25rem 0 .5rem;
+        }
+
+        .markdown-body p {
+            margin: .7rem 0;
+        }
+
+        .markdown-body ul,
+        .markdown-body ol {
+            padding-left: 1.4rem;
+            margin: .7rem 0;
+        }
+
+        .markdown-body li {
+            margin: .3rem 0;
+        }
+
+        .markdown-body blockquote {
+            border-left: 4px solid #6366f1;
+            padding-left: 1rem;
+            margin: 1rem 0;
+            color: #64748b;
+        }
+
+        .markdown-body table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-size: 14px;
+        }
+
+        .markdown-body th,
+        .markdown-body td {
+            border: 1px solid #cbd5e1;
+            padding: .5rem;
+            text-align: left;
+        }
+
+        .markdown-body img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        #viewerContainer:fullscreen {
+            width: 100vw;
+            height: 100vh;
+            border-radius: 0;
+            background: white;
+        }
+
+        [data-theme="dark"] #viewerContainer:fullscreen {
+            background: #0f172a;
+        }
     </style>
 </head>
+
 <body class="bg-gray-50 text-gray-900 min-h-screen transition-colors duration-200 pb-10">
 
-    <!-- Шапка -->
-    <header class="sticky top-0 z-10 bg-white/90 backdrop-blur-md border-b border-gray-200 px-4 py-3 flex justify-between items-center shadow-sm">
-        <h1 class="text-lg font-bold text-indigo-600">📚 Учебный помощник</h1>
-        <div class="flex items-center gap-2">
-            <button id="calendarBtn" class="p-2 rounded-xl bg-gray-100 text-lg">📅</button>
-            <button id="themeToggleBtn" class="p-2 rounded-xl bg-gray-100 text-lg">🌙</button>
-        </div>
-    </header>
+<header class="sticky top-0 z-10 bg-white/90 backdrop-blur-md border-b border-gray-200 px-4 py-3 flex justify-between items-center shadow-sm">
 
-    <!-- Основной контент -->
-    <main class="p-4 space-y-4 max-w-md mx-auto">
+    <h1 class="text-lg font-bold text-indigo-600">
+        📚 Учебный помощник
+    </h1>
 
-        <!-- Выбор семестра и дисциплины -->
-        <section class="bg-white bg-card p-4 rounded-2xl shadow-sm border border-gray-100 space-y-3">
-            <h2 class="text-base font-semibold">Навигация</h2>
-            <div class="space-y-2">
-                <select id="semesterSelect" class="w-full p-3 rounded-xl border border-gray-200 bg-white text-base">
-                    <option value="">Выберите семестр...</option>
-                    <option value="1">1 Семестр</option>
-                    <option value="2">2 Семестр</option>
-                </select>
-                <select id="subjectSelect" class="w-full p-3 rounded-xl border border-gray-200 bg-white text-base">
-                    <option value="">Выберите дисциплину...</option>
-                    <option value="1">Психология</option>
-                    <option value="2">Педагогика</option>
-                </select>
-            </div>
-        </section>
+    <div class="flex items-center gap-2">
+        <button
+            id="calendarBtn"
+            class="p-2 rounded-xl bg-gray-100 text-lg"
+            title="Календарь">
+            📅
+        </button>
 
-        <!-- Контрольные вопросы с ответами -->
-        <section class="bg-white bg-card p-4 rounded-2xl shadow-sm border border-gray-100 space-y-3">
-            <h2 class="text-base font-semibold">❓ Контрольные вопросы</h2>
-            <div id="questionsContainer" class="space-y-2">
-                
-                <details class="group bg-gray-50 p-3 rounded-xl border border-gray-200">
-                    <summary class="font-medium cursor-pointer list-none flex justify-between items-center">
-                        <span>1. Что такое рефлексия?</span>
-                        <span class="text-xs transition group-open:rotate-180">▼</span>
-                    </summary>
-                    <div class="mt-2 text-sm text-gray-600 border-t pt-2">
-                        Это процесс самопознания внутренних психических актов и состояний.
-                    </div>
-                </details>
-
-            </div>
-        </section>
-
-        <!-- Просмотрщик файлов -->
-        <section class="bg-white bg-card p-4 rounded-2xl shadow-sm border border-gray-100 space-y-3">
-            <div class="flex justify-between items-center">
-                <h2 class="text-base font-semibold">📄 Материалы темы</h2>
-                <button id="fullScreenBtn" class="text-xs bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg font-medium">Во весь экран ⛶</button>
-            </div>
-            
-            <div id="viewerContainer" class="w-full h-80 border border-gray-200 rounded-xl overflow-hidden bg-gray-100 relative">
-                <iframe id="pdfViewer" class="w-full h-full hidden" src=""></iframe>
-                <div id="viewerPlaceholder" class="w-full h-full flex flex-col items-center justify-center p-4 text-center text-gray-400 text-sm">
-                    <span>Выберите файл для просмотра</span>
-                    <span class="text-xs mt-1 text-gray-300">(.pdf, .docx, .md)</span>
-                </div>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- Окно Календаря -->
-    <div id="calendarModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
-        <div class="bg-white bg-card rounded-3xl p-5 w-full max-w-xs space-y-4 shadow-xl">
-            <div class="flex justify-between items-center">
-                <h3 class="font-bold text-base">📅 Напоминания</h3>
-                <button id="closeCalendarBtn" class="text-gray-400 p-1">✕</button>
-            </div>
-            <input type="date" class="w-full p-3 border rounded-xl text-sm">
-            <input type="text" placeholder="Событие (Занятие / Экзамен)" class="w-full p-3 border rounded-xl text-sm">
-            <button class="w-full bg-indigo-600 text-white py-3 rounded-xl font-medium text-sm">Добавить</button>
-        </div>
+        <button
+            id="themeToggleBtn"
+            class="p-2 rounded-xl bg-gray-100 text-lg"
+            title="Тема">
+            🌙
+        </button>
     </div>
 
-    <!-- Логика сайта -->
-    <script>
-        // Переключатель темной / светлой темы
-        const themeBtn = document.getElementById('themeToggleBtn');
-        themeBtn.addEventListener('click', () => {
-            const html = document.documentElement;
-            const currentTheme = html.getAttribute('data-theme');
-            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-            html.setAttribute('data-theme', newTheme);
-            themeBtn.textContent = newTheme === 'light' ? '🌙' : '☀️';
-        });
+</header>
 
-        // Календарь
-        const calendarBtn = document.getElementById('calendarBtn');
-        const closeCalendarBtn = document.getElementById('closeCalendarBtn');
-        const calendarModal = document.getElementById('calendarModal');
 
-        calendarBtn.addEventListener('click', () => calendarModal.classList.remove('hidden'));
-        closeCalendarBtn.addEventListener('click', () => calendarModal.classList.add('hidden'));
+<main class="p-4 space-y-4 max-w-md mx-auto">
 
-        // Режим во весь экран
-        const fullScreenBtn = document.getElementById('fullScreenBtn');
-        const viewerContainer = document.getElementById('viewerContainer');
+    <section class="bg-white bg-card p-4 rounded-2xl shadow-sm border border-gray-100 space-y-3">
 
-        fullScreenBtn.addEventListener('click', () => {
-            if (!document.fullscreenElement) {
-                viewerContainer.requestFullscreen().catch(err => alert(err.message));
-            } else {
-                document.exitFullscreen();
+        <h2 class="text-base font-semibold">
+            🧭 Навигация
+        </h2>
+
+        <select
+            id="semesterSelect"
+            class="w-full p-3 rounded-xl border border-gray-200 bg-white text-base">
+
+            <option value="">
+                Выберите семестр...
+            </option>
+
+        </select>
+
+
+        <select
+            id="subjectSelect"
+            class="w-full p-3 rounded-xl border border-gray-200 bg-white text-base"
+            disabled>
+
+            <option value="">
+                Сначала выберите семестр...
+            </option>
+
+        </select>
+
+
+        <select
+            id="topicSelect"
+            class="w-full p-3 rounded-xl border border-gray-200 bg-white text-base"
+            disabled>
+
+            <option value="">
+                Сначала выберите дисциплину...
+            </option>
+
+        </select>
+
+    </section>
+
+
+    <section class="bg-white bg-card p-4 rounded-2xl shadow-sm border border-gray-100 space-y-3">
+
+        <div class="flex justify-between items-center">
+
+            <h2 class="text-base font-semibold">
+                📖 Материалы темы
+            </h2>
+
+            <button
+                id="fullScreenBtn"
+                class="text-xs bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg font-medium">
+
+                Во весь экран ⛶
+
+            </button>
+
+        </div>
+
+
+        <div
+            id="materialButtons"
+            class="grid grid-cols-2 gap-2 hidden">
+
+            <button
+                id="lectureBtn"
+                class="bg-indigo-600 text-white py-2.5 rounded-xl text-sm font-medium">
+
+                📖 Лекція
+
+            </button>
+
+            <button
+                id="pdfBtn"
+                class="bg-gray-100 text-gray-700 py-2.5 rounded-xl text-sm font-medium">
+
+                📄 PDF
+
+            </button>
+
+            <button
+                id="docxBtn"
+                class="bg-gray-100 text-gray-700 py-2.5 rounded-xl text-sm font-medium">
+
+                📘 DOCX
+
+            </button>
+
+        </div>
+
+
+        <div
+            id="viewerContainer"
+            class="w-full h-96 border border-gray-200 rounded-xl overflow-hidden bg-gray-100 relative">
+
+            <iframe
+                id="pdfViewer"
+                class="w-full h-full hidden"
+                src="">
+            </iframe>
+
+
+            <div
+                id="markdownViewer"
+                class="hidden w-full h-full overflow-y-auto bg-white p-4">
+
+                <article
+                    id="markdownContent"
+                    class="markdown-body">
+
+                </article>
+
+            </div>
+
+
+            <div
+                id="viewerPlaceholder"
+                class="w-full h-full flex flex-col items-center justify-center p-4 text-center text-gray-400 text-sm">
+
+                <span>
+                    Выберите тему
+                </span>
+
+                <span class="text-xs mt-1">
+                    Здесь появятся учебные материалы
+                </span>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <section
+        id="questionsSection"
+        class="bg-white bg-card p-4 rounded-2xl shadow-sm border border-gray-100 space-y-3 hidden">
+
+        <h2 class="text-base font-semibold">
+            ❓ Контрольные вопросы
+        </h2>
+
+        <div
+            id="questionsContainer"
+            class="space-y-2">
+
+        </div>
+
+    </section>
+
+
+    <section
+        id="topicInfo"
+        class="bg-white bg-card p-4 rounded-2xl shadow-sm border border-gray-100 hidden">
+
+        <h2 class="text-base font-semibold mb-2">
+            ℹ️ О теме
+        </h2>
+
+        <div
+            id="topicDescription"
+            class="text-sm text-gray-600">
+
+        </div>
+
+    </section>
+
+</main>
+
+
+<div
+    id="calendarModal"
+    class="fixed inset-0 bg-black/60 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
+
+    <div
+        class="bg-white bg-card rounded-3xl p-5 w-full max-w-xs space-y-4 shadow-xl">
+
+        <div class="flex justify-between items-center">
+
+            <h3 class="font-bold text-base">
+                📅 Напоминания
+            </h3>
+
+            <button
+                id="closeCalendarBtn"
+                class="text-gray-400 p-1">
+
+                ✕
+
+            </button>
+
+        </div>
+
+
+        <input
+            id="calendarDate"
+            type="date"
+            class="w-full p-3 border rounded-xl text-sm">
+
+
+        <input
+            id="calendarEvent"
+            type="text"
+            placeholder="Событие (Занятие / Экзамен)"
+            class="w-full p-3 border rounded-xl text-sm">
+
+
+        <button
+            id="addEventBtn"
+            class="w-full bg-indigo-600 text-white py-3 rounded-xl font-medium text-sm">
+
+            Добавить
+
+        </button>
+
+
+        <div
+            id="eventsList"
+            class="space-y-2 text-sm">
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+const STUDY_DATA = [
+
+    {
+        id: "semester1",
+        name: "1 Семестр",
+
+        subjects: [
+
+            {
+                id: "ok7",
+                name: "ОК 7 — Правове регулювання надання психологічної допомоги",
+
+                topics: [
+
+                    {
+                        id: "topic1",
+                        name: "Тема 1. Загальні питання правового регулювання охорони здоров’я в Україні",
+
+                        description:
+                            "Основи правового регулювання охорони здоров’я, медичне право, фармацевтичне право, психічне здоров’я та біоетика.",
+
+                        materials: {
+                            md: "materials/OK7/topic1/lecture.md",
+                            pdf: "materials/OK7/topic1/official.pdf",
+                            docx: "materials/OK7/topic1/lecture.docx"
+                        },
+
+                        questions: [
+
+                            {
+                                q: "Що таке правова норма?",
+                                a: "Правова норма — загальнообов’язкове правило поведінки, встановлене або визнане державою та забезпечене відповідними засобами державного впливу."
+                            },
+
+                            {
+                                q: "Яка структура правової норми?",
+                                a: "Класична структура включає гіпотезу, диспозицію та санкцію."
+                            },
+
+                            {
+                                q: "Що таке медичне право?",
+                                a: "Медичне право — комплекс правових норм, що регулюють суспільні відносини у сфері охорони здоров’я та медичної діяльності."
+                            }
+
+                        ]
+                    },
+
+
+                    {
+                        id: "topic2",
+                        name: "Тема 2. Міжнародні та регіональні стандарти у сфері ментального здоров’я та психологічної діяльності",
+
+                        description:
+                            "Міжнародні стандарти прав людини, європейські документи, професійна етика психолога та права людини у сфері психічного здоров’я.",
+
+                        materials: {
+                            md: "materials/OK7/topic2/lecture.md",
+                            pdf: "materials/OK7/topic2/official.pdf",
+                            docx: "materials/OK7/topic2/lecture.docx"
+                        },
+
+                        questions: [
+
+                            {
+                                q: "Що таке Хартія прав людини?",
+                                a: "До системи Хартії прав людини відносять Загальну декларацію прав людини та два міжнародні пакти ООН — про громадянські і політичні права та про економічні, соціальні і культурні права."
+                            },
+
+                            {
+                                q: "Які основні принципи професійної діяльності психолога?",
+                                a: "Не нашкодь, повага до гідності та автономії людини, конфіденційність, недопущення навішування ярликів, професійна компетентність і моральна відповідальність."
+                            }
+
+                        ]
+                    },
+
+
+                    {
+                        id: "topic3",
+                        name: "Тема 3. Правове регулювання діяльності психолога в системі освіти",
+
+                        description:
+                            "Правовий статус психолога в системі освіти України, психологічна служба, права та обов’язки практичного психолога.",
+
+                        materials: {
+                            md: "materials/OK7/topic3/lecture.md",
+                            pdf: "materials/OK7/topic3/official.pdf",
+                            docx: "materials/OK7/topic3/lecture.docx"
+                        },
+
+                        questions: [
+
+                            {
+                                q: "Які основні обов’язки практичного психолога в системі освіти?",
+                                a: "Дотримуватися законодавства та професійної етики, працювати в межах компетентності, забезпечувати конфіденційність, застосовувати науково обґрунтовані методи та поважати гідність учасників освітнього процесу."
+                            },
+
+                            {
+                                q: "Коли потрібна письмова згода батьків?",
+                                a: "Для індивідуальної діагностики та корекції дитини потрібна письмова згода батьків або законного представника, яку можна відкликати."
+                            }
+
+                        ]
+                    },
+
+
+                    {
+                        id: "topic4",
+                        name: "Тема 4. Правове регулювання психологічної допомоги при захисті прав членів родини",
+
+                        description:
+                            "Домашнє насильство, дискримінація, безоплатна правнича допомога та соціально-психологічна підтримка.",
+
+                        materials: {
+                            md: "materials/OK7/topic4/lecture.md",
+                            pdf: "materials/OK7/topic4/official.pdf",
+                            docx: "materials/OK7/topic4/lecture.docx"
+                        },
+
+                        questions: [
+
+                            {
+                                q: "Що таке домашнє насильство?",
+                                a: "Домашнє насильство — діяння фізичного, сексуального, психологічного або економічного насильства, що вчиняються в сім’ї чи між особами, які мають або мали відповідні сімейні чи близькі відносини."
+                            },
+
+                            {
+                                q: "Які форми дискримінації виділяють?",
+                                a: "Зокрема, пряма та непряма дискримінація, підбурювання до дискримінації, пособництво в дискримінації та утиск."
+                            }
+
+                        ]
+                    },
+
+
+                    {
+                        id: "topic5",
+                        name: "Тема 5. Правове забезпечення діяльності психолога у розв’язанні проблем соціально уразливих категорій населення",
+
+                        description:
+                            "Соціально уразливі категорії населення, складні життєві обставини, соціальні послуги та психологічна допомога постраждалим від війни.",
+
+                        materials: {
+                            md: "materials/OK7/topic5/lecture.md",
+                            pdf: "materials/OK7/topic5/official.pdf",
+                            docx: "materials/OK7/topic5/lecture.docx"
+                        },
+
+                        questions: [
+
+                            {
+                                q: "Що таке складні життєві обставини?",
+                                a: "Це обставини, що негативно впливають на життя, стан здоров’я та розвиток особи або функціонування сім’ї, які особа чи сім’я не може подолати самостійно."
+                            },
+
+                            {
+                                q: "Які основні принципи гуманітарної допомоги?",
+                                a: "Безпека, гідність, повага до прав людини та недискримінація."
+                            }
+
+                        ]
+                    },
+
+
+                    {
+                        id: "topic6",
+                        name: "Тема 6. Юридична відповідальність психолога за професійні правопорушення",
+
+                        description:
+                            "Види юридичної відповідальності, професійні правопорушення, незаконні експерименти та доведення до самогубства.",
+
+                        materials: {
+                            md: "materials/OK7/topic6/lecture.md",
+                            pdf: "materials/OK7/topic6/official.pdf",
+                            docx: "materials/OK7/topic6/lecture.docx"
+                        },
+
+                        questions: [
+
+                            {
+                                q: "Які види юридичної відповідальності існують?",
+                                a: "Конституційна, кримінальна, адміністративна, цивільно-правова та трудова відповідальність."
+                            },
+
+                            {
+                                q: "Що передбачає стаття 142 Кримінального кодексу України?",
+                                a: "Вона встановлює відповідальність за незаконне проведення медико-біологічних, психологічних або інших експериментів, якщо вони створюють небезпеку для життя або здоров’я людини."
+                            },
+
+                            {
+                                q: "Що передбачає стаття 120 Кримінального кодексу України?",
+                                a: "Вона встановлює кримінальну відповідальність за доведення до самогубства та пов’язані з ним протиправні дії."
+                            }
+
+                        ]
+                    }
+
+                ]
             }
+
+        ]
+    },
+
+
+    {
+        id: "semester2",
+        name: "2 Семестр",
+
+        subjects: [
+
+            {
+                id: "placeholder",
+                name: "Дисципліни будуть додані",
+
+                topics: []
+
+            }
+
+        ]
+    }
+
+];
+
+
+const semesterSelect =
+    document.getElementById("semesterSelect");
+
+const subjectSelect =
+    document.getElementById("subjectSelect");
+
+const topicSelect =
+    document.getElementById("topicSelect");
+
+const materialButtons =
+    document.getElementById("materialButtons");
+
+const lectureBtn =
+    document.getElementById("lectureBtn");
+
+const pdfBtn =
+    document.getElementById("pdfBtn");
+
+const docxBtn =
+    document.getElementById("docxBtn");
+
+const pdfViewer =
+    document.getElementById("pdfViewer");
+
+const markdownViewer =
+    document.getElementById("markdownViewer");
+
+const markdownContent =
+    document.getElementById("markdownContent");
+
+const viewerPlaceholder =
+    document.getElementById("viewerPlaceholder");
+
+const questionsSection =
+    document.getElementById("questionsSection");
+
+const questionsContainer =
+    document.getElementById("questionsContainer");
+
+const topicInfo =
+    document.getElementById("topicInfo");
+
+const topicDescription =
+    document.getElementById("topicDescription");
+
+const viewerContainer =
+    document.getElementById("viewerContainer");
+
+
+function loadSemesters() {
+
+    semesterSelect.innerHTML =
+        '<option value="">Выберите семестр...</option>';
+
+    STUDY_DATA.forEach(semester => {
+
+        const option =
+            document.createElement("option");
+
+        option.value = semester.id;
+        option.textContent = semester.name;
+
+        semesterSelect.appendChild(option);
+
+    });
+}
+
+
+function loadSubjects() {
+
+    const semester =
+        STUDY_DATA.find(
+            item => item.id === semesterSelect.value
+        );
+
+    subjectSelect.innerHTML =
+        '<option value="">Выберите дисциплину...</option>';
+
+    topicSelect.innerHTML =
+        '<option value="">Сначала выберите дисциплину...</option>';
+
+    subjectSelect.disabled = true;
+    topicSelect.disabled = true;
+
+    resetViewer();
+
+    if (!semester) return;
+
+    semester.subjects.forEach(subject => {
+
+        const option =
+            document.createElement("option");
+
+        option.value = subject.id;
+        option.textContent = subject.name;
+
+        subjectSelect.appendChild(option);
+
+    });
+
+    subjectSelect.disabled = false;
+}
+
+
+function loadTopics() {
+
+    const semester =
+        STUDY_DATA.find(
+            item => item.id === semesterSelect.value
+        );
+
+    if (!semester) return;
+
+    const subject =
+        semester.subjects.find(
+            item => item.id === subjectSelect.value
+        );
+
+    topicSelect.innerHTML =
+        '<option value="">Выберите тему...</option>';
+
+    topicSelect.disabled = true;
+
+    resetViewer();
+
+    if (!subject) return;
+
+    subject.topics.forEach(topic => {
+
+        const option =
+            document.createElement("option");
+
+        option.value = topic.id;
+        option.textContent = topic.name;
+
+        topicSelect.appendChild(option);
+
+    });
+
+    topicSelect.disabled = false;
+}
+
+
+function getCurrentTopic() {
+
+    const semester =
+        STUDY_DATA.find(
+            item => item.id === semesterSelect.value
+        );
+
+    if (!semester) return null;
+
+    const subject =
+        semester.subjects.find(
+            item => item.id === subjectSelect.value
+        );
+
+    if (!subject) return null;
+
+    return subject.topics.find(
+        item => item.id === topicSelect.value
+    ) || null;
+}
+
+
+function showTopic() {
+
+    const topic = getCurrentTopic();
+
+    resetViewer();
+
+    if (!topic) return;
+
+    topicInfo.classList.remove("hidden");
+
+    topicDescription.textContent =
+        topic.description || "";
+
+    materialButtons.classList.remove("hidden");
+
+    questionsContainer.innerHTML = "";
+
+    if (topic.questions && topic.questions.length > 0) {
+
+        questionsSection.classList.remove("hidden");
+
+        topic.questions.forEach((item, index) => {
+
+            const details =
+                document.createElement("details");
+
+            details.className =
+                "group bg-gray-50 p-3 rounded-xl border border-gray-200";
+
+
+            const summary =
+                document.createElement("summary");
+
+            summary.className =
+                "font-medium cursor-pointer list-none flex justify-between items-center";
+
+
+            const question =
+                document.createElement("span");
+
+            question.textContent =
+                `${index + 1}. ${item.q}`;
+
+
+            const arrow =
+                document.createElement("span");
+
+            arrow.className =
+                "text-xs transition group-open:rotate-180";
+
+            arrow.textContent = "▼";
+
+
+            summary.appendChild(question);
+            summary.appendChild(arrow);
+
+
+            const answer =
+                document.createElement("div");
+
+            answer.className =
+                "mt-2 text-sm text-gray-600 border-t pt-2";
+
+            answer.textContent =
+                item.a;
+
+
+            details.appendChild(summary);
+            details.appendChild(answer);
+
+            questionsContainer.appendChild(details);
+
         });
-    </script>
+
+    } else {
+
+        questionsSection.classList.add("hidden");
+
+    }
+
+    if (topic.materials && topic.materials.md) {
+        loadMarkdown(topic.materials.md);
+    }
+
+}
+
+
+async function loadMarkdown(url) {
+
+    hideAllViewers();
+
+    viewerPlaceholder.classList.add("hidden");
+
+    markdownViewer.classList.remove("hidden");
+
+    markdownContent.innerHTML =
+        '<div class="text-center text-gray-400 py-10">Загрузка лекции...</div>';
+
+    try {
+
+        const response =
+            await fetch(url);
+
+        if (!response.ok) {
+            throw new Error("Файл не найден");
+        }
+
+        const text =
+            await response.text();
+
+        markdownContent.innerHTML =
+            marked.parse(text);
+
+
+        const images =
+            markdownContent.querySelectorAll("img");
+
+        images.forEach(img => {
+
+            const src =
+                img.getAttribute("src");
+
+            if (
+                src &&
+                !src.startsWith("http") &&
+                !src.startsWith("/")
+            ) {
+
+                const base =
+                    url.substring(
+                        0,
+                        url.lastIndexOf("/") + 1
+                    );
+
+                img.src =
+                    base + src;
+
+            }
+
+        });
+
+    } catch (error) {
+
+        markdownContent.innerHTML = `
+            <div class="text-center text-red-500 py-10">
+                Не удалось загрузить лекцию.
+                <br>
+                <span class="text-xs">
+                    ${error.message}
+                </span>
+            </div>
+        `;
+
+    }
+
+}
+
+
+function loadPDF(url) {
+
+    hideAllViewers();
+
+    viewerPlaceholder.classList.add("hidden");
+
+    pdfViewer.classList.remove("hidden");
+
+    pdfViewer.src = url;
+
+}
+
+
+function loadDOCX(url) {
+
+    hideAllViewers();
+
+    viewerPlaceholder.classList.add("hidden");
+
+    pdfViewer.classList.remove("hidden");
+
+    const absoluteURL =
+        new URL(url, window.location.href).href;
+
+    pdfViewer.src =
+        "https://view.officeapps.live.com/op/embed.aspx?src="
+        + encodeURIComponent(absoluteURL);
+
+}
+
+
+function hideAllViewers() {
+
+    pdfViewer.classList.add("hidden");
+
+    markdownViewer.classList.add("hidden");
+
+    pdfViewer.src = "";
+
+}
+
+
+function resetViewer() {
+
+    hideAllViewers();
+
+    materialButtons.classList.add("hidden");
+
+    questionsSection.classList.add("hidden");
+
+    topicInfo.classList.add("hidden");
+
+    markdownContent.innerHTML = "";
+
+    viewerPlaceholder.classList.remove("hidden");
+
+}
+
+
+semesterSelect.addEventListener(
+    "change",
+    loadSubjects
+);
+
+subjectSelect.addEventListener(
+    "change",
+    loadTopics
+);
+
+topicSelect.addEventListener(
+    "change",
+    showTopic
+);
+
+
+lectureBtn.addEventListener("click", () => {
+
+    const topic =
+        getCurrentTopic();
+
+    if (!topic || !topic.materials.md) return;
+
+    loadMarkdown(
+        topic.materials.md
+    );
+
+});
+
+
+pdfBtn.addEventListener("click", () => {
+
+    const topic =
+        getCurrentTopic();
+
+    if (!topic || !topic.materials.pdf) return;
+
+    loadPDF(
+        topic.materials.pdf
+    );
+
+});
+
+
+docxBtn.addEventListener("click", () => {
+
+    const topic =
+        getCurrentTopic();
+
+    if (!topic || !topic.materials.docx) return;
+
+    loadDOCX(
+        topic.materials.docx
+    );
+
+});
+
+
+const themeBtn =
+    document.getElementById("themeToggleBtn");
+
+
+function setTheme(theme) {
+
+    document.documentElement
+        .setAttribute("data-theme", theme);
+
+    themeBtn.textContent =
+        theme === "light"
+            ? "🌙"
+            : "☀️";
+
+    localStorage.setItem(
+        "study-theme",
+        theme
+    );
+
+}
+
+
+themeBtn.addEventListener(
+    "click",
+    () => {
+
+        const current =
+            document.documentElement
+                .getAttribute("data-theme");
+
+        setTheme(
+            current === "light"
+                ? "dark"
+                : "light"
+        );
+
+    }
+);
+
+
+const savedTheme =
+    localStorage.getItem("study-theme");
+
+if (savedTheme) {
+    setTheme(savedTheme);
+}
+
+
+const fullScreenBtn =
+    document.getElementById("fullScreenBtn");
+
+
+fullScreenBtn.addEventListener(
+    "click",
+    () => {
+
+        if (!document.fullscreenElement) {
+
+            viewerContainer
+                .requestFullscreen()
+                .catch(error => {
+                    alert(error.message);
+                });
+
+        } else {
+
+            document.exitFullscreen();
+
+        }
+
+    }
+);
+
+
+const calendarBtn =
+    document.getElementById("calendarBtn");
+
+const closeCalendarBtn =
+    document.getElementById("closeCalendarBtn");
+
+const calendarModal =
+    document.getElementById("calendarModal");
+
+const addEventBtn =
+    document.getElementById("addEventBtn");
+
+const calendarDate =
+    document.getElementById("calendarDate");
+
+const calendarEvent =
+    document.getElementById("calendarEvent");
+
+const eventsList =
+    document.getElementById("eventsList");
+
+
+calendarBtn.addEventListener(
+    "click",
+    () => {
+
+        calendarModal.classList
+            .remove("hidden");
+
+        calendarModal.classList
+            .add("flex");
+
+        renderEvents();
+
+    }
+);
+
+
+closeCalendarBtn.addEventListener(
+    "click",
+    closeCalendar
+);
+
+
+calendarModal.addEventListener(
+    "click",
+    event => {
+
+        if (event.target === calendarModal) {
+            closeCalendar();
+        }
+
+    }
+);
+
+
+function closeCalendar() {
+
+    calendarModal.classList
+        .add("hidden");
+
+    calendarModal.classList
+        .remove("flex");
+
+}
+
+
+function getEvents() {
+
+    try {
+
+        return JSON.parse(
+            localStorage.getItem(
+                "study-events"
+            )
+        ) || [];
+
+    } catch {
+
+        return [];
+
+    }
+
+}
+
+
+function saveEvents(events) {
+
+    localStorage.setItem(
+        "study-events",
+        JSON.stringify(events)
+    );
+
+}
+
+
+addEventBtn.addEventListener(
+    "click",
+    () => {
+
+        const date =
+            calendarDate.value;
+
+        const text =
+            calendarEvent.value.trim();
+
+        if (!date || !text) {
+
+            alert(
+                "Укажите дату и событие."
+            );
+
+            return;
+
+        }
+
+
+        const events =
+            getEvents();
+
+
+        events.push({
+            date: date,
+            text: text
+        });
+
+
+        events.sort(
+            (a, b) =>
+                a.date.localeCompare(b.date)
+        );
+
+
+        saveEvents(events);
+
+        calendarEvent.value = "";
+
+        renderEvents();
+
+    }
+);
+
+
+function renderEvents() {
+
+    const events =
+        getEvents();
+
+    eventsList.innerHTML = "";
+
+
+    if (events.length === 0) {
+
+        eventsList.innerHTML =
+            '<div class="text-gray-400 text-center py-2">Пока нет напоминаний.</div>';
+
+        return;
+
+    }
+
+
+    events.forEach(
+        (event, index) => {
+
+            const item =
+                document.createElement("div");
+
+            item.className =
+                "flex justify-between items-center bg-gray-50 p-3 rounded-xl";
+
+
+            const info =
+                document.createElement("div");
+
+            const date =
+                document.createElement("div");
+
+            date.className =
+                "font-medium";
+
+            date.textContent =
+                event.date;
+
+
+            const text =
+                document.createElement("div");
+
+            text.className =
+                "text-gray-500 text-xs mt-1";
+
+            text.textContent =
+                event.text;
+
+
+            info.appendChild(date);
+            info.appendChild(text);
+
+
+            const deleteBtn =
+                document.createElement("button");
+
+            deleteBtn.className =
+                "text-red-400 text-xs ml-2";
+
+            deleteBtn.textContent =
+                "✕";
+
+
+            deleteBtn.addEventListener(
+                "click",
+                () => {
+
+                    events.splice(
+                        index,
+                        1
+                    );
+
+                    saveEvents(events);
+
+                    renderEvents();
+
+                }
+            );
+
+
+            item.appendChild(info);
+            item.appendChild(deleteBtn);
+
+            eventsList.appendChild(item);
+
+        }
+    );
+
+}
+
+
+loadSemesters();
+
+</script>
+
 </body>
 </html>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Помощник в учебе</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        [data-theme="dark"] {
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+        [data-theme="dark"] .bg-card {
+            background-color: #1e293b;
+            border-color: #334155;
+        }
+        [data-theme="dark"] select, 
+        [data-theme="dark"] input,
+        [data-theme="dark"] details {
+            background-color: #334155;
+            color: #ffffff;
+            border-color: #475569;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 min-h-screen transition-colors duration-200 pb-10">
+
+    <!-- Шапка -->
+    <header class="sticky top-0 z-10 bg-white/90 backdrop-blur-md border-b border-gray-200 px-4 py-3 flex justify-between items-center shadow-sm">
+        <h1 class="text-lg font-bold text-indigo-600">📚 Учебный помощник</h1>
+        <div class="flex items-center gap-2">
+            <button id="calendarBtn" class="p-2 rounded-xl bg-gray-100 text-lg">📅</button>
+            <button id="themeToggleBtn" class="p-2 rounded-xl bg-gray-100 text-lg">🌙</button>
+        </div>
+    </header>
+
+    <!-- Основной контент -->
+    <main class="p-4 space-y-4 max-w-md mx-auto">
+
+        <!-- Выбор семестра и дисциплины -->
+        <section class="bg-white bg-card p-4 rounded-2xl shadow-sm border border-gray-100 space-y-3">
+            <h2 class="text-base font-semibold">Навигация</h2>
+            <div class="space-y-2">
+                <select id="semesterSelect" class="w-full p-3 rounded-xl border border-gray-200 bg-white text-base">
+                    <option value="">Выберите семестр...</option>
+                    <option value="1">1 Семестр</option>
+                    <option value="2">2 Семестр</option>
+                </select>
+                <select id="subjectSelect" class="w-full p-3 rounded-xl border border-gray-200 bg-white text-base">
+                    <option value="">Выберите дисциплину...</option>
+                    <option value="1">Психология</option>
+                    <option value="2">Педагогика</option>
+                </select>
+            </div>
+        </section>
+
+        <!-- Контрольные вопросы с ответами -->
+        <section class="bg-white bg-card p-4 rounded-2xl shadow-sm border border-gray-100 space-y-3">
+            <h2 class="text-base font-semibold">❓ Контрольные вопросы</h2>
+            <div id="questionsContainer" class="space-y-2">
+                
+                <details class="group bg-gray-50 p-3 rounded-xl border border-gray-200">
+                    <summary class="font-medium cursor-pointer list-none flex justify-between items-center">
+                        <span>1. Что такое рефлексия?</span>
+                        <span class="text-xs transition group-open:rotate-180">▼</span>
+                    </summary>
+                    <div class="mt-2 text-sm text-gray-600 border-t pt-2">
+                        Это процесс самопознания внутренних психических актов и состояний.
+                    </div>
+                </details>
+
+            </div>
+        </section>
+
+        <!-- Просмотрщик файлов -->
+        <section class="bg-white bg-card p-4 rounded-2xl shadow-sm border border-gray-100 space-y-3">
+            <div class="flex justify-between items-center">
+                <h2 class="text-base font-semibold">📄 Материалы темы</h2>
+                <button id="fullScreenBtn" class="text-xs bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg font-medium">Во весь экран ⛶</button>
+            </div>
+            
+            <div id="viewerContainer" class="w-full h-80 border border-gray-200 rounded-xl overflow-hidden bg-gray-100 relative">
+                <iframe id="pdfViewer" class="w-full h-full hidden" src=""></iframe>
+                <div id="viewerPlaceholder" class="w-full h-full flex flex-col items-center justify-center p-4 text-center text-gray-400 text-sm">
+                    <span>Выберите файл для просмотра</span>
+                    <span class="text-xs mt-1 text-gray-300">(.pdf, .docx, .md)</span>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Окно Календаря -->
+    <div id="calendarModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
+        <div class="bg-white bg-card rounded-3xl p-5 w-full max-w-xs space-y-4 shadow-xl">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-base">📅 Напоминания</h3>
+                <button id="closeCalendarBtn" class="text-gray-400 p-1">✕</button>
+            </div>
+            <input type="date" class="w-full p-3 border rounded-xl text-sm">
+            <input type="text" placeholder="Событие (Занятие / Экзамен)" class="w-full p-3 border rounded-xl text-sm">
+            <button class="w-full bg-indigo-600 text-white py-3 rounded-xl font-medium text-sm">Добавить</button>
+        </div>
+    </div>
+
+    <!-- Логика сайта -->
+    <script>
+        // Переключатель темной / светлой темы
+        const themeBtn = document.getElementById('themeToggleBtn');
+        themeBtn.addEventListener('click', () => {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            html.setAttribute('data-theme', newTheme);
+            themeBtn.textContent = newTheme === 'light' ? '🌙' : '☀️';
+        });
+
+        // Календарь
+        const calendarBtn = document.getElementById('calendarBtn');
+        const closeCalendarBtn = document.getElementById('closeCalendarBtn');
+        const calendarModal = document.getElementById('calendarModal');
+
+        calendarBtn.addEventListener('click', () => calendarModal.classList.remove('hidden'));
+        closeCalendarBtn.addEventListener('click', () => calendarModal.classList.add('hidden'));
+
+        // Режим во весь экран
+        const fullScreenBtn = document.getElementById('fullScreenBtn');
+        const viewerContainer = document.getElementById('viewerContainer');
+
+        fullScreenBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                viewerContainer.requestFullscreen().catch(err => alert(err.message));
+            } else {
+                document.exitFullscreen();
+            }
+        });
+    </script>
+</body>
+</html>
